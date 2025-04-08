@@ -23,6 +23,14 @@ export const useBoardStore = defineStore('board', {
         })
       }
     },
+    updateTask(taskId, newTitle) {
+      const board = this.activeBoard;
+      const task = board.columns.flatMap(column => column.tasks).find(t => t.id === taskId);
+
+      if (task) {
+        task.title = newTitle;
+      }
+    },
     updateColumnTitle(columnId, newTitle) {
       const board = this.activeBoard;
       const column = board?.columns.find(c => c.id === columnId);
