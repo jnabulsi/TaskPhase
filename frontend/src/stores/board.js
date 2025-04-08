@@ -12,23 +12,33 @@ export const useBoardStore = defineStore('board', {
     }
   },
   actions: {
-    addTask(columnId, title) {
-      const board = this.activeBoard;
-      const column = board?.columns.find(c => c.id === columnId);
-
+    findTaskById(taskId) {
+      return this.activeBoard.columns
+        .flatMap(column => column.tasks)
+        .find(task => task.id === taskId);
+    },
+    findColumnById(columnId) {
+      return this.activeBoard.columns.find(column => column.id === columnId);
+    },
+    addTask(columnId, title, description = '') {
+      const column = this.findColumnById(columnId);
       if (column) {
         column.tasks.push({
           id: crypto.randomUUID(),
-          title
-        })
+          title,
+          description,
+        });
       }
     },
-    updateTask(taskId, newTitle) {
-      const board = this.activeBoard;
-      const task = board.columns.flatMap(column => column.tasks).find(t => t.id === taskId);
-
+    updateTask(taskId, newTitle, description) {
+      const task = this.findTaskById(taskId);
       if (task) {
-        task.title = newTitle;
+        if (newTitle !== undefined) {
+          task.title = newTitle; // Update the title if provided
+        }
+        if (description !== undefined) {
+          task.description = description; // Update the description if provided
+        }
       }
     },
     updateColumnTitle(columnId, newTitle) {

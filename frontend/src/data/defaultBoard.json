@@ -10,12 +10,12 @@
           {
             "id": 1,
             "title": "Set up project",
-            "assignedTo": null
+            "description": "This is a description of the task."
           },
           {
             "id": 2,
             "title": "Create wireframe",
-            "assignedTo": null
+            "description": "This is a diffrent description."
           }
         ]
       },
@@ -26,17 +26,17 @@
           {
             "id": 3,
             "title": "Implement board page",
-            "assignedTo": null
+            "description": ""
           },
           {
             "id": 6,
             "title": "Get stuff done",
-            "assignedTo": null
+            "description": "This is a diffrent description."
           },
           {
             "id": 5,
             "title": "Set up pinia stores",
-            "assignedTo": null
+            "description": "This is a diffrent description."
           }
         ]
       },
@@ -47,7 +47,7 @@
           {
             "id": 4,
             "title": "Brainstorm features",
-            "assignedTo": null
+            "description": "This is a diffrent description."
           }
         ]
       }

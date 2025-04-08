@@ -12,6 +12,7 @@
         <Column v-for="column in columns" :key="column.id" :column="column" />
       </v-row>
     </v-main>
+
   </v-container>
 </template>
 

@@ -28,33 +28,21 @@
     </v-card-text>
 
     <!-- Column Edit Modal -->
-    <v-dialog v-model="showColumnEditModal" max-width="600" scrim="rgba(0, 0, 0, 0.8)">
-      <v-card>
-        <v-card-title>Edit Column</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="newColumnTitle" label="Column Title" />
-        </v-card-text>
-        <v-card-actions>
-          <v-btn @click="saveColumn">Save</v-btn>
-          <v-btn @click="showColumnEditModal = false">Cancel</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <GenericModal title="Edit Column" :isOpen="showColumnEditModal" :initialValues="{ title: newColumnTitle }"
+      @submit="saveColumn" @close="showColumnEditModal = false">
+      <template #inputs="{ inputValues }">
+        <v-text-field v-model="inputValues.title" label="Column Title" />
+      </template>
+    </GenericModal>
 
     <!-- Task Add Modal -->
-    <v-dialog v-model="showTaskAddModal" max-width="600" scrim="rgba(0, 0, 0, 0.8)">
-      <v-card>
-        <v-card-title>Add Task</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="newTaskTitle" label="Task title" />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn @click="showTaskAddModal = false">Cancel</v-btn>
-          <v-btn @click="addNewTask">Add</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <GenericModal :title="'Add Task'" :isOpen="showTaskAddModal" :initialValues="{ title: '', description: '' }"
+      @submit="addNewTask" @close="showTaskAddModal = false">
+      <template #inputs="{ inputValues }">
+        <v-text-field v-model="inputValues.title" label="Task title" />
+        <v-textarea v-model="inputValues.description" label="Task description" auto-grow />
+      </template>
+    </GenericModal>
   </v-card>
 </template>
 
@@ -72,27 +60,23 @@ const props = defineProps({
 });
 
 const showTaskAddModal = ref(false);
-const newTaskTitle = ref('');
 
-function addNewTask() {
-  if (newTaskTitle.value.trim()) {
-    store.addTask(props.column.id, newTaskTitle.value.trim());
-    newTaskTitle.value = '';
+function addNewTask({ title, description }) {
+  if (title.trim()) {
+    store.addTask(props.column.id, title.trim(), description.trim());
     showTaskAddModal.value = false;
   }
 }
 
 const showColumnEditModal = ref(false);
-const newColumnTitle = ref('');
 
 function openColumnEditModal() {
   newColumnTitle.value = props.column.title;
   showColumnEditModal.value = true;
 }
 
-function saveColumn() {
-  store.updateColumnTitle(props.column.id, newColumnTitle.value.trim());
+function saveColumn(inputValues) {
+  store.updateColumnTitle(props.column.id, inputValues.title.trim());
   showColumnEditModal.value = false;
 }
 </script>
-
