@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "name": "My First Project",
+    "columns": [
+      {
+        "id": 1,
+        "title": "To Do",
+        "tasks": [
+          {
+            "id": 1,
+            "title": "Set up project",
+            "assignedTo": null
+          },
+          {
+            "id": 2,
+            "title": "Create wireframe",
+            "assignedTo": null
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "In Progress",
+        "tasks": [
+          {
+            "id": 3,
+            "title": "Implement board page",
+            "assignedTo": null
+          },
+          {
+            "id": 6,
+            "title": "Get stuff done",
+            "assignedTo": null
+          },
+          {
+            "id": 5,
+            "title": "Set up pinia stores",
+            "assignedTo": null
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Done",
+        "tasks": [
+          {
+            "id": 4,
+            "title": "Brainstorm features",
+            "assignedTo": null
+          }
+        ]
+      }
+    ]
+  }
+]
