@@ -1,6 +1,6 @@
 <template>
   <v-card class="ma-4" width="380">
-    <v-card-title class="d-flex align-center justify-space-between">
+    <v-card-title class="column-header d-flex align-center justify-space-between">
       <div class="d-flex align-center">
         <span class="ml-2 pa-3 text-h5">{{ column.title }}</span>
       </div>
@@ -69,6 +69,7 @@ function addNewTask({ title, description }) {
 }
 
 const showColumnEditModal = ref(false);
+const newColumnTitle = ref('');
 
 function openColumnEditModal() {
   newColumnTitle.value = props.column.title;
@@ -80,3 +81,9 @@ function saveColumn(inputValues) {
   showColumnEditModal.value = false;
 }
 </script>
+
+<style scoped>
+.column-header {
+  cursor: move;
+}
+</style>

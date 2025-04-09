@@ -4,23 +4,54 @@
       <v-app-bar-nav-icon />
       <v-toolbar-title>Project Name</v-toolbar-title>
       <v-spacer />
-      <v-btn icon aria-label="Add New Column" title="Add New Column"><v-icon>mdi-plus</v-icon></v-btn>
+      <v-btn icon aria-label="Add New Column" title="Add New Column"
+        @click="showAddColumnModal = true"><v-icon>mdi-plus</v-icon></v-btn>
     </v-app-bar>
+
 
     <v-main>
       <v-row no-gutters class="pa-4 justify-center" style="overflow-x: auto; flex-wrap: nowrap;">
-        <Column v-for="column in columns" :key="column.id" :column="column" />
+        <draggable v-model="columns" group="columns" item-key="id" tag="div" class="d-flex" handle=".column-header"
+          @end="onColumnDragEnd">
+          <template #item="{ element }">
+            <Column :column="element" :key="element.id" />
+          </template>
+        </draggable>
       </v-row>
     </v-main>
+
+    <!-- Add Column Modal -->
+    <GenericModal title="Add New Column" :isOpen="showAddColumnModal" :initialValues="{ title: '' }" @submit="addColumn"
+      @close="showAddColumnModal = false">
+      <template #inputs="{ inputValues }">
+        <v-text-field v-model="inputValues.title" label="Column Title" required />
+      </template>
+    </GenericModal>
 
   </v-container>
 </template>
 
 <script setup>
-import { useBoardStore } from '@/stores/board'
+import { ref } from 'vue';
+import draggable from 'vuedraggable';
+import { useBoardStore } from '@/stores/board';
 
-const boardStore = useBoardStore()
+const boardStore = useBoardStore();
 
-const activeBoard = boardStore.activeBoard; // Use the getter
-const columns = activeBoard?.columns || []; // Safely access columns
+const activeBoard = boardStore.activeBoard;
+const columns = activeBoard?.columns || [];
+
+const showAddColumnModal = ref(false);
+
+function addColumn({ title }) {
+  if (title.trim()) {
+    boardStore.addColumn(title.trim());
+    showAddColumnModal.value = false;
+  }
+}
+
+function onColumnDragEnd(evt) {
+  const movedColumnId = columns[evt.oldIndex].id;
+  boardStore.updateColumnPosition(movedColumnId, evt.newIndex);
+}
 </script>

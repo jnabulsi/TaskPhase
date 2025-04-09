@@ -9,19 +9,19 @@ export const useBoardStore = defineStore('board', {
   getters: {
     activeBoard(state) {
       return state.boards.find(b => b.id === state.activeBoardId);
+    },
+    getTaskById: (state) => (taskId) => {
+      const board = state.boards.find(b => b.id === state.activeBoardId);
+      return board?.columns.flatMap(col => col.tasks).find(task => task.id === taskId);
+    },
+    getColumnById: (state) => (columnId) => {
+      const board = state.boards.find(b => b.id === state.activeBoardId);
+      return board?.columns.find(col => col.id === columnId);
     }
   },
   actions: {
-    findTaskById(taskId) {
-      return this.activeBoard.columns
-        .flatMap(column => column.tasks)
-        .find(task => task.id === taskId);
-    },
-    findColumnById(columnId) {
-      return this.activeBoard.columns.find(column => column.id === columnId);
-    },
     addTask(columnId, title, description = '') {
-      const column = this.findColumnById(columnId);
+      const column = this.getColumnById(columnId);
       if (column) {
         column.tasks.push({
           id: crypto.randomUUID(),
@@ -31,13 +31,33 @@ export const useBoardStore = defineStore('board', {
       }
     },
     updateTask(taskId, newTitle, description) {
-      const task = this.findTaskById(taskId);
+      const task = this.getTaskById(taskId);
+
       if (task) {
         if (newTitle !== undefined) {
           task.title = newTitle; // Update the title if provided
         }
         if (description !== undefined) {
           task.description = description; // Update the description if provided
+        }
+      }
+    },
+    addColumn(title) {
+      const newColumn = {
+        id: crypto.randomUUID(), // or a simple ID strategy for now
+        title,
+        tasks: [],
+      };
+
+      this.activeBoard.columns.push(newColumn);
+    },
+    updateColumnPosition(columnId, newIndex) {
+      const board = this.activeBoard;
+      if (board) {
+        const columnIndex = board.columns.findIndex(col => col.id === columnId);
+        if (columnIndex !== -1) {
+          const [movedColumn] = board.columns.splice(columnIndex, 1);
+          board.columns.splice(newIndex, 0, movedColumn);
         }
       }
     },
