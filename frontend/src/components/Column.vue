@@ -1,12 +1,14 @@
 <template>
   <v-card class="ma-4" width="380">
-    <v-card-title class="column-header d-flex align-center justify-space-between">
+    <v-card-title :style="{ backgroundColor: column.color }"
+      class="column-header d-flex align-center justify-space-between">
       <div class="d-flex align-center">
-        <span class="ml-2 pa-3 text-h5">{{ column.title }}</span>
+        <span class="ml-2 pa-3 text-h5 font-weight-bold ">{{ column.title }}</span>
       </div>
       <v-menu>
         <template #activator="{ props }">
-          <v-btn v-bind="props" aria-label="Edit column options" title="Edit column options">
+          <v-btn :style="{ backgroundColor: column.color }" v-bind="props" aria-label="Edit column options"
+            title="Edit column options">
             <v-icon>mdi-cog-outline</v-icon>
           </v-btn>
         </template>
@@ -36,6 +38,7 @@
       @submit="saveColumn" @close="showColumnEditModal = false">
       <template #inputs="{ inputValues }">
         <v-text-field v-model="inputValues.title" label="Column Title" />
+        <v-color-picker v-model="inputValues.color" label="Column Color" />
       </template>
     </GenericModal>
 
@@ -82,7 +85,7 @@ function openColumnEditModal() {
 }
 
 function saveColumn(inputValues) {
-  store.updateColumnTitle(props.column.id, inputValues.title.trim());
+  store.updateColumn(props.column.id, inputValues.title.trim(), inputValues.color);
   showColumnEditModal.value = false;
 }
 

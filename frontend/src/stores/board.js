@@ -61,10 +61,11 @@ export const useBoardStore = defineStore('board', {
         }
       }
     },
-    addColumn(title) {
+    addColumn(newTitle, newColor) {
       const newColumn = {
-        id: crypto.randomUUID(), // or a simple ID strategy for now
-        title,
+        id: crypto.randomUUID(),
+        title: newTitle,
+        color: newColor,
         tasks: [],
       };
 
@@ -80,13 +81,11 @@ export const useBoardStore = defineStore('board', {
         }
       }
     },
-    updateColumnTitle(columnId, newTitle) {
-      const board = this.activeBoard;
-      const column = board?.columns.find(c => c.id === columnId);
-
+    updateColumn(columnId, newTitle, newColor) {
+      const column = this.getColumnById(columnId);
       if (column) {
-        column.title = newTitle;  // Update the column's title
-        console.log(this.boards);
+        column.title = newTitle;
+        column.color = newColor;
       }
     }
   }

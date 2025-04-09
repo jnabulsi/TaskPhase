@@ -8,7 +8,6 @@
         @click="showAddColumnModal = true"><v-icon>mdi-plus</v-icon></v-btn>
     </v-app-bar>
 
-
     <v-main>
       <v-row no-gutters class="pa-4 justify-center" style="overflow-x: auto; flex-wrap: nowrap;">
         <draggable v-model="columns" group="columns" item-key="id" tag="div" class="d-flex" handle=".column-header"
@@ -21,10 +20,11 @@
     </v-main>
 
     <!-- Add Column Modal -->
-    <GenericModal title="Add New Column" :isOpen="showAddColumnModal" :initialValues="{ title: '' }" @submit="addColumn"
-      @close="showAddColumnModal = false">
+    <GenericModal title="Add New Column" :isOpen="showAddColumnModal" :initialValues="{ title: '', color: '#000000' }"
+      @submit="handleAddColumn" @close="showAddColumnModal = false">
       <template #inputs="{ inputValues }">
         <v-text-field v-model="inputValues.title" label="Column Title" required />
+        <v-color-picker v-model="inputValues.color" label="Column Color" />
       </template>
     </GenericModal>
 
@@ -36,22 +36,20 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
 
-const boardStore = useBoardStore();
+const store = useBoardStore();
 
-const activeBoard = boardStore.activeBoard;
+const activeBoard = store.activeBoard;
 const columns = activeBoard?.columns || [];
 
 const showAddColumnModal = ref(false);
 
-function addColumn({ title }) {
-  if (title.trim()) {
-    boardStore.addColumn(title.trim());
-    showAddColumnModal.value = false;
-  }
+function handleAddColumn(inputValues) {
+  store.addColumn(inputValues.title.trim(), inputValues.color);
+  showAddColumnModal.value = false;
 }
 
 function onColumnDragEnd(evt) {
   const movedColumnId = columns[evt.oldIndex].id;
-  boardStore.updateColumnPosition(movedColumnId, evt.newIndex);
+  store.updateColumnPosition(movedColumnId, evt.newIndex);
 }
 </script>

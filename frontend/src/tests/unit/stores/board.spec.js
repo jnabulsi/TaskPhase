@@ -176,15 +176,15 @@ describe('Board Store', () => {
       expect(store.boards[1].columns.find(col => col.title === 'Active Column')).toBeUndefined();
     });
   });
-  describe('updateColumnTitle', () => {
+  describe('updateColumn', () => {
     it('updates the column title correctly', () => {
-      store.updateColumnTitle(1, 'Updated Title');
+      store.updateColumn(1, 'Updated Title');
       expect(store.boards[0].columns[1].title).toBe('Updated Title');
     });
 
     it('does not update the title for a non-existent column', () => {
       const initialTitle = store.boards[0].columns[0].title;
-      store.updateColumnTitle(999, 'Invalid Title');
+      store.updateColumn(999, 'Invalid Title');
       expect(store.boards[0].columns[0].title).toBe(initialTitle);
     });
 
