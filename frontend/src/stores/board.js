@@ -42,6 +42,25 @@ export const useBoardStore = defineStore('board', {
         }
       }
     },
+    moveTaskBetweenColumns(taskId, fromColumnId, toColumnId, newIndex) {
+      // Find the source column
+      const fromColumn = this.getColumnById(fromColumnId);
+      const toColumn = this.getColumnById(toColumnId);
+
+      if (fromColumn && toColumn) {
+        // Find the task to move
+        const taskIndex = fromColumn.tasks.findIndex(task => task.id === taskId);
+        const task = fromColumn.tasks[taskIndex];
+
+        if (task) {
+          // Remove the task from the old column
+          fromColumn.tasks.splice(taskIndex, 1);
+
+          // Add the task to the new column at the specified index
+          toColumn.tasks.splice(newIndex, 0, task);
+        }
+      }
+    },
     addColumn(title) {
       const newColumn = {
         id: crypto.randomUUID(), // or a simple ID strategy for now

@@ -24,7 +24,11 @@
     <v-divider />
 
     <v-card-text>
-      <TaskCard v-for="task in column.tasks" :key="task.id" :task="task" />
+      <draggable v-model="column.tasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list">
+        <template #item="{ element }">
+          <TaskCard :task="element" />
+        </template>
+      </draggable>
     </v-card-text>
 
     <!-- Column Edit Modal -->
@@ -48,6 +52,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
 
 const store = useBoardStore();
@@ -79,6 +84,16 @@ function openColumnEditModal() {
 function saveColumn(inputValues) {
   store.updateColumnTitle(props.column.id, inputValues.title.trim());
   showColumnEditModal.value = false;
+}
+
+function onTaskDrop(event) {
+
+  const movedTaskId = event.item.id; // The ID of the task that was moved
+  const fromColumnId = event.from.dataset.columnId; // Assuming you set a data attribute for column ID
+  const toColumnId = props.column.id; // The column where the task was dropped
+
+  // Update the store to reflect the new task location
+  store.moveTaskBetweenColumns(movedTaskId, fromColumnId, toColumnId, event.newIndex);
 }
 </script>
 

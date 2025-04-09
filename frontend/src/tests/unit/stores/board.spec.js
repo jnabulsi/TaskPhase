@@ -80,6 +80,55 @@ describe('Board Store', () => {
       expect(updatedTask.title).toBe(initialTitle);
     });
   });
+  describe('moveTaskBetweenColumns', () => {
+    it('moves a task from one column to another', () => {
+      // Move Task 1 from 'To Do' to 'In Progress'
+      store.moveTaskBetweenColumns(101, 0, 1, 0, 0);
+
+      // Check the tasks in 'To Do' column
+      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
+      expect(toDoColumn.tasks).toHaveLength(0); // Should have 1 task left
+      expect(toDoColumn.tasks.find(task => task.id === 101)).toBeUndefined(); // Task 1 should be removed
+
+      // Check the tasks in 'In Progress' column
+      const inProgressColumn = store.boards[0].columns.find(col => col.id === 1);
+      expect(inProgressColumn.tasks).toHaveLength(2); // Should have 1 task
+      expect(inProgressColumn.tasks.find(task => task.id === 101)).toBeDefined(); // Task 1 should be present
+    });
+
+    it('does not move a non-existent task', () => {
+      const initialTasksCount = store.boards[0].columns[0].tasks.length;
+
+      // Attempt to move a task that does not exist
+      store.moveTaskBetweenColumns(999, 0, 1, 0, 0); // Invalid task ID
+
+      // Check that the number of tasks in 'To Do' column is unchanged
+      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
+      expect(toDoColumn.tasks).toHaveLength(initialTasksCount); // Should still have the same number of tasks
+    });
+
+    it('does not move if the source or destination column does not exist', () => {
+      const initialTasksCount = store.boards[0].columns[0].tasks.length;
+
+      // Attempt to move a task with invalid column IDs
+      store.moveTaskBetweenColumns(101, 999, 1, 0, 0); // Invalid source column ID
+      store.moveTaskBetweenColumns(101, 0, 999, 0, 0); // Invalid destination column ID
+
+      // Check that the number of tasks in 'To Do' column is unchanged
+      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
+      expect(toDoColumn.tasks).toHaveLength(initialTasksCount); // Should still have the same number of tasks
+    });
+
+    it('handles moving tasks to the same column', () => {
+      // Move Task 1 to the same column at the same index
+      store.moveTaskBetweenColumns(101, 0, 0, 0, 0); // Move Task 1 to the same position in the same column
+
+      // Check the tasks in 'To Do' column
+      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
+      expect(toDoColumn.tasks).toHaveLength(1); // Should still have both tasks
+      expect(toDoColumn.tasks[0].id).toBe(101); // Task 1 should still be first
+    });
+  });
   describe('addColumn', () => {
     it('adds a new column with the specified title', () => {
       store.addColumn('New Column');
