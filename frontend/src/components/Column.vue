@@ -1,5 +1,5 @@
 <template>
-  <v-card class="ma-4" width="380">
+  <v-card :style="{ backgroundColor: lightenColor(column.color, 0.2) }" class="ma-4" width="380">
     <v-card-title :style="{ backgroundColor: column.color }"
       class="column-header d-flex align-center justify-space-between">
       <div class="d-flex align-center">
@@ -25,17 +25,21 @@
 
     <v-divider />
 
-    <v-card-text>
+    <v-card-text :data-column-id="props.column.id">
       <draggable v-model="column.tasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list">
         <template #item="{ element }">
-          <TaskCard :task="element" />
+          <div>
+            {{ console.log('Checking filters for:', element) }}
+            <TaskCard v-if="passesFilters(element)" :task="element" />
+          </div>
         </template>
       </draggable>
     </v-card-text>
 
     <!-- Column Edit Modal -->
-    <GenericModal title="Edit Column" :isOpen="showColumnEditModal" :initialValues="{ title: newColumnTitle }"
-      @submit="saveColumn" @close="showColumnEditModal = false">
+    <GenericModal title="Edit Column" :isOpen="showColumnEditModal"
+      :initialValues="{ title: newColumnTitle, color: newColumnColor }" @submit="saveColumn"
+      @close="showColumnEditModal = false">
       <template #inputs="{ inputValues }">
         <v-text-field v-model="inputValues.title" label="Column Title" />
         <v-color-picker v-model="inputValues.color" label="Column Color" />
@@ -43,11 +47,19 @@
     </GenericModal>
 
     <!-- Task Add Modal -->
-    <GenericModal :title="'Add Task'" :isOpen="showTaskAddModal" :initialValues="{ title: '', description: '' }"
-      @submit="addNewTask" @close="showTaskAddModal = false">
+    <GenericModal :title="'Add Task'" :isOpen="showTaskAddModal"
+      :initialValues="{ title: '', description: '', tags: [] }" @submit="addNewTask" @close="showTaskAddModal = false">
       <template #inputs="{ inputValues }">
         <v-text-field v-model="inputValues.title" label="Task title" />
         <v-textarea v-model="inputValues.description" label="Task description" auto-grow />
+
+        <!-- Tags Selection -->
+        <v-list>
+          <v-list-item v-for="tag in tags" :key="tag.id">
+            <v-checkbox v-model="inputValues.tags" :label="tag.title" :value="tag.id" :style="{ color: tag.color }"
+              hide-details />
+          </v-list-item>
+        </v-list>
       </template>
     </GenericModal>
   </v-card>
@@ -57,6 +69,7 @@
 import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
+import { lightenColor } from '@/utils/utils';
 
 const store = useBoardStore();
 
@@ -67,20 +80,40 @@ const props = defineProps({
   }
 });
 
+function passesFilters(task) {
+  const activeTags = store.getActiveTags;
+  const taskTags = task.tags;
+  if (activeTags.length > 0) {
+    if (taskTags.length > 0) {
+      for (let i = 0; i < activeTags.length; i++) {
+        for (let j = 0; j < taskTags.length; j++) {
+          if (activeTags[i].id === taskTags[j]) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
 const showTaskAddModal = ref(false);
 
-function addNewTask({ title, description }) {
+function addNewTask({ title, description, tags }) {
   if (title.trim()) {
-    store.addTask(props.column.id, title.trim(), description.trim());
+    store.addTask(props.column.id, title.trim(), description.trim(), tags);
     showTaskAddModal.value = false;
   }
 }
 
 const showColumnEditModal = ref(false);
 const newColumnTitle = ref('');
+const newColumnColor = ref('');
 
 function openColumnEditModal() {
   newColumnTitle.value = props.column.title;
+  newColumnColor.value = props.column.color;
   showColumnEditModal.value = true;
 }
 

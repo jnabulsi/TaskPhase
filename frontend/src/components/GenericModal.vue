@@ -6,7 +6,7 @@
         <slot name="inputs" :input-values="inputValues"></slot>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="handleSubmit">Submit</v-btn>
+        <v-btn @click="handleSubmit">Save</v-btn>
         <v-btn @click="handleCancel">Cancel</v-btn>
       </v-card-actions>
     </v-card>
@@ -57,4 +57,3 @@ function handleModalChange(value) {
   emit('update:isOpen', value); // Emit the updated state of the modal
 }
 </script>
-

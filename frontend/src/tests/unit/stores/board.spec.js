@@ -17,14 +17,28 @@ describe('Board Store', () => {
             id: 0,
             title: 'To Do',
             tasks: [
-              { id: 101, title: 'Old Task Title' }
+              { id: 101, title: 'Old Task Title', tags: [] }
             ]
           },
           {
             id: 1, title: 'In Progress', tasks: [
-              { id: 201, title: 'Task Title2' }
+              { id: 201, title: 'Task Title2', tags: [] }
 
             ]
+          }
+        ],
+        tags: [
+          {
+            id: 1,
+            title: 'bug',
+            value: true,
+            color: '#FF5733'
+          },
+          {
+            id: 2,
+            title: 'feature',
+            value: true,
+            color: '#33FF57'
           }
         ]
       }
@@ -53,7 +67,20 @@ describe('Board Store', () => {
       store.addTask(999, 'Task in Non-existent Column');
       expect(store.boards[0].columns[0].tasks).toHaveLength(1);
     });
+    it('adds a task with a single tag to the correct column', () => {
+      store.addTask(0, 'Task with Tag', 'This task has a tag.', [1]);
+      const newTask = store.boards[0].columns[0].tasks.find(task => task.title === 'Task with Tag');
 
+      expect(newTask).toBeDefined(); // Check that the task was added
+      expect(newTask.tags).toContain(1); // Check that the tag ID 1 is associated with the task
+    });
+    it('adds a task with multiple tags to the correct column', () => {
+      store.addTask(0, 'Task with Multiple Tags', 'This task has multiple tags.', [1, 2]);
+      const newTask = store.boards[0].columns[0].tasks.find(task => task.title === 'Task with Multiple Tags');
+
+      expect(newTask).toBeDefined(); // Check that the task was added
+      expect(newTask.tags).toEqual([1, 2]); // Check that both tags are associated with the task
+    });
   });
 
   describe('updateTask', () => {

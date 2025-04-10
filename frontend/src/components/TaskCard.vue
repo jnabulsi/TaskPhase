@@ -7,7 +7,7 @@
       <v-card>
         <v-card-title>{{ task.title }}</v-card-title>
         <v-card-text>
-          <p>Description: {{ task.description }}</p>
+          <p> {{ task.description }}</p>
         </v-card-text>
         <v-card-actions>
           <v-btn @click="showEditTaskModal = true">Edit Task</v-btn>

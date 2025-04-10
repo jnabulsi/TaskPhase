@@ -10,6 +10,15 @@ export const useBoardStore = defineStore('board', {
     activeBoard(state) {
       return state.boards.find(b => b.id === state.activeBoardId);
     },
+    getActiveTags(state) {
+      const activeBoard = state.boards.find(b => b.id === state.activeBoardId);
+      if (activeBoard) {
+        const activeTags = activeBoard.tags.filter(tag => tag.value);
+        console.log("Active Tags from Getter:", JSON.parse(JSON.stringify(activeTags)));
+        return activeTags;
+      }
+      return [];
+    },
     getTaskById: (state) => (taskId) => {
       const board = state.boards.find(b => b.id === state.activeBoardId);
       return board?.columns.flatMap(col => col.tasks).find(task => task.id === taskId);
@@ -20,13 +29,26 @@ export const useBoardStore = defineStore('board', {
     }
   },
   actions: {
-    addTask(columnId, title, description = '') {
+    addTag(title, value, color) {
+      const newTag = {
+        id: crypto.randomUUID(),
+        title,
+        value,
+        color,
+      };
+      const board = this.boards.find(b => b.id === this.activeBoardId);
+      if (board) {
+        board.tags.push(newTag);
+      }
+    },
+    addTask(columnId, title, description = '', tags = []) {
       const column = this.getColumnById(columnId);
       if (column) {
         column.tasks.push({
           id: crypto.randomUUID(),
           title,
           description,
+          tags: tags,
         });
       }
     },
