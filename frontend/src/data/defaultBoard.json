@@ -1,83 +1,69 @@
-[
-  {
-    "id": 1,
-    "name": "My First Project",
-    "columns": [
-      {
-        "id": 1,
-        "title": "To-Do",
-        "color": "#f0ad4e",
-        "tasks": [
-          {
-            "id": 1,
-            "title": "Set up project",
-            "description": "This is a description of the task.",
-            "tags": []
-          },
-          {
-            "id": 2,
-            "title": "Create wireframe",
-            "description": "This is a diffrent description.",
-            "tags": [
-              1
-            ]
-          }
-        ]
-      },
-      {
-        "id": 2,
-        "title": "In Progress",
-        "color": "#007bff",
-        "tasks": [
-          {
-            "id": 3,
-            "title": "Implement board page",
-            "description": "",
-            "tags": [
-              1
-            ]
-          },
-          {
-            "id": 6,
-            "title": "Get stuff done",
-            "description": "This is a diffrent description.",
-            "tags": [
-              1
-            ]
-          },
-          {
-            "id": 5,
-            "title": "Set up pinia stores",
-            "description": "This is a diffrent description.",
-            "tags": [
-              1
-            ]
-          }
-        ]
-      },
-      {
-        "id": 3,
-        "title": "Done",
-        "color": "#28a745",
-        "tasks": [
-          {
-            "id": 4,
-            "title": "Brainstorm features",
-            "description": "This is a diffrent description.",
-            "tags": [
-              1
-            ]
-          }
-        ]
-      }
-    ],
-    "tags": [
-      {
-        "id": 1,
-        "title": "bug",
-        "value": true,
-        "color": "#FF5733"
-      }
-    ]
-  }
-]
+{
+  "boards": [
+    {
+      "id": 1,
+      "name": "My First Project"
+    }
+  ],
+  "columns": [
+    {
+      "id": 1,
+      "boardId": 1,
+      "title": "To-Do",
+      "color": "#f0ad4e",
+      "order": 0
+    },
+    {
+      "id": 2,
+      "boardId": 1,
+      "title": "In Progress",
+      "color": "#007bff",
+      "order": 1
+    },
+    {
+      "id": 3,
+      "boardId": 1,
+      "title": "Done",
+      "color": "#28a745",
+      "order": 2
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1,
+      "columnId": 1,
+      "title": "Set up project",
+      "description": "This is a description of the task.",
+      "tags": [],
+      "order": 0
+    },
+    {
+      "id": 2,
+      "columnId": 1,
+      "title": "Create wireframe",
+      "description": "This is a different description.",
+      "tags": [
+        1
+      ],
+      "order": 1
+    },
+    {
+      "id": 3,
+      "columnId": 2,
+      "title": "Implement board page",
+      "description": "",
+      "tags": [
+        1
+      ],
+      "order": 0
+    }
+  ],
+  "tags": [
+    {
+      "id": 1,
+      "boardId": 1,
+      "title": "bug",
+      "color": "#FF5733"
+    }
+  ]
+}

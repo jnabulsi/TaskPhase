@@ -3,112 +3,187 @@ import defaultBoards from '@/data/defaultBoard.json'
 
 export const useBoardStore = defineStore('board', {
   state: () => ({
-    activeBoardId: 1,
-    boards: defaultBoards
+    activeBoardId: null,
+    boards: [],
+    columns: [],
+    tasks: [],
+    tags: [],
   }),
   getters: {
-    activeBoard(state) {
+    getActiveBoard(state) {
       return state.boards.find(b => b.id === state.activeBoardId);
     },
-    getActiveTags(state) {
-      const activeBoard = state.boards.find(b => b.id === state.activeBoardId);
-      if (activeBoard) {
-        const activeTags = activeBoard.tags.filter(tag => tag.value);
-        console.log("Active Tags from Getter:", JSON.parse(JSON.stringify(activeTags)));
-        return activeTags;
-      }
-      return [];
+    getActiveColumns: (state) => {
+      return state.columns.filter(col => col.boardId === state.activeBoardId);
     },
-    getTaskById: (state) => (taskId) => {
-      const board = state.boards.find(b => b.id === state.activeBoardId);
-      return board?.columns.flatMap(col => col.tasks).find(task => task.id === taskId);
+    getActiveTags: (state) => {
+      return state.tags.filter(tag => tag.boardId === state.activeBoardId);
     },
-    getColumnById: (state) => (columnId) => {
-      const board = state.boards.find(b => b.id === state.activeBoardId);
-      return board?.columns.find(col => col.id === columnId);
-    }
+    getActiveTasks: (state) => {
+      const activeBoardId = state.activeBoardId;
+      const columnIds = state.columns
+        .filter(col => col.boardId === activeBoardId)
+        .map(col => col.id);
+
+      return state.tasks.filter(task =>
+        columnIds.includes(task.columnId)
+      );
+    },
   },
   actions: {
-    addTag(title, value, color) {
-      const newTag = {
-        id: crypto.randomUUID(),
+    // dev init
+    initializeFromDefault() {
+      this.boards = defaultBoards.boards;
+      this.columns = defaultBoards.columns;
+      this.tasks = defaultBoards.tasks;
+      this.tags = defaultBoards.tags;
+      this.activeBoardId = this.boards[0]?.id || null;
+    },
+
+    // Board actions
+    setActiveBoard(id) {
+      this.activeBoardId = id;
+    },
+    createBoard(name) {
+      this.boards.push({ id: crypto.randomUUID(), name });
+    },
+
+    // Column actions
+    createColumn(title, color) {
+      const id = crypto.randomUUID();
+      const boardId = this.activeBoardId;
+      const order = this.columns.filter(c => c.boardId === boardId).length;
+
+      this.columns.push({
+        id,
+        boardId,
         title,
-        value,
+        color,
+        order,
+      });
+    },
+    updateColumn(id, updates) {
+      const index = this.columns.findIndex(c => c.id === id);
+      if (index !== -1) {
+        // Create a new column object with the updates applied
+        const updatedColumn = { ...this.columns[index], ...updates };
+        // Replace the old column with the new updated column
+        this.columns.splice(index, 1, updatedColumn);
+      }
+    },
+    moveColumn(oldIndex, newIndex) {
+      if (oldIndex === newIndex) return;
+
+      // Only work with columns from the active board
+      const boardColumns = this.columns
+        .filter(col => col.boardId === this.activeBoardId)
+        .sort((a, b) => a.order - b.order);
+
+      // Ensure indices are within range
+      if (
+        oldIndex < 0 || newIndex < 0 ||
+        oldIndex >= boardColumns.length ||
+        newIndex >= boardColumns.length
+      ) return;
+
+      const columnToMove = boardColumns[oldIndex];
+      const columnToSwap = boardColumns[newIndex];
+
+      if (!columnToMove || !columnToSwap) return;
+
+      // Swap order values
+      const temp = columnToMove.order;
+      columnToMove.order = columnToSwap.order;
+      columnToSwap.order = temp;
+
+      this.columns = [...this.columns]; // Trigger reactivity
+    },
+    deleteColumn(id) {
+      this.columns = this.columns.filter(c => c.id !== id);
+      this.tasks = this.tasks.filter(t => t.columnId !== id);
+    },
+
+    // Task actions
+    createTask(columnId, title, description = '', tags = [], dueDate = null) {
+      const id = crypto.randomUUID();
+      this.tasks.push({
+        id,
+        columnId,
+        title,
+        description,
+        tags,
+        dueDate,
+        order: this.tasks.filter(t => t.columnId === columnId).length,
+      });
+    },
+    updateTask(id, updates) {
+      const task = this.tasks.find(t => t.id === id);
+      if (task) {
+        Object.assign(task, updates);
+      }
+    },
+    moveTask(taskId, newIndex, columnId) {
+      // Find the task to move
+      const taskToMove = this.tasks.find(t => t.id === taskId);
+      if (!taskToMove) return;
+
+      // If the column changed, update the columnId and adjust the old column's task orders
+      if (taskToMove.columnId !== columnId) {
+        const oldColumnTasks = this.tasks
+          .filter(t => t.columnId === taskToMove.columnId)
+          .sort((a, b) => a.order - b.order)
+          .filter(t => t.id !== taskId);
+
+        oldColumnTasks.forEach((t, idx) => {
+          t.order = idx;
+        });
+
+        taskToMove.columnId = columnId;
+      }
+
+      // Reorder tasks in the target column
+      const targetTasks = this.tasks
+        .filter(t => t.columnId === columnId && t.id !== taskId)
+        .sort((a, b) => a.order - b.order);
+
+      targetTasks.splice(newIndex, 0, taskToMove);
+
+      targetTasks.forEach((t, idx) => {
+        t.order = idx;
+      });
+
+      // Apply changes to main task list (reassign to trigger reactivity)
+      this.tasks = [...this.tasks];
+    },
+    deleteTask(id) {
+      this.tasks = this.tasks.filter(task => task.id !== id);
+    },
+
+    // Tag actions
+    createTag(title, color) {
+      const id = crypto.randomUUID();
+      const newTag = {
+        id,
+        boardId: this.activeBoardId,
+        title,
         color,
       };
-      const board = this.boards.find(b => b.id === this.activeBoardId);
-      if (board) {
-        board.tags.push(newTag);
+      this.tags.push(newTag);
+    },
+    updateTag(id, updates) {
+      const tag = this.tags.find(tag => tag.id === id);
+      if (tag) {
+        Object.assign(tag, updates);
       }
     },
-    addTask(columnId, title, description = '', tags = []) {
-      const column = this.getColumnById(columnId);
-      if (column) {
-        column.tasks.push({
-          id: crypto.randomUUID(),
-          title,
-          description,
-          tags: tags,
-        });
-      }
-    },
-    updateTask(taskId, newTitle, description) {
-      const task = this.getTaskById(taskId);
+    deleteTag(id) {
+      // Remove the tag from the tags array
+      this.tags = this.tags.filter(tag => tag.id !== id);
 
-      if (task) {
-        if (newTitle !== undefined) {
-          task.title = newTitle; // Update the title if provided
-        }
-        if (description !== undefined) {
-          task.description = description; // Update the description if provided
-        }
+      // Remove the tag from all tasks
+      for (const task of this.tasks) {
+        task.tags = task.tags.filter(tid => tid !== id);
       }
     },
-    moveTaskBetweenColumns(taskId, fromColumnId, toColumnId, newIndex) {
-      // Find the source column
-      const fromColumn = this.getColumnById(fromColumnId);
-      const toColumn = this.getColumnById(toColumnId);
-
-      if (fromColumn && toColumn) {
-        // Find the task to move
-        const taskIndex = fromColumn.tasks.findIndex(task => task.id === taskId);
-        const task = fromColumn.tasks[taskIndex];
-
-        if (task) {
-          // Remove the task from the old column
-          fromColumn.tasks.splice(taskIndex, 1);
-
-          // Add the task to the new column at the specified index
-          toColumn.tasks.splice(newIndex, 0, task);
-        }
-      }
-    },
-    addColumn(newTitle, newColor) {
-      const newColumn = {
-        id: crypto.randomUUID(),
-        title: newTitle,
-        color: newColor,
-        tasks: [],
-      };
-
-      this.activeBoard.columns.push(newColumn);
-    },
-    updateColumnPosition(columnId, newIndex) {
-      const board = this.activeBoard;
-      if (board) {
-        const columnIndex = board.columns.findIndex(col => col.id === columnId);
-        if (columnIndex !== -1) {
-          const [movedColumn] = board.columns.splice(columnIndex, 1);
-          board.columns.splice(newIndex, 0, movedColumn);
-        }
-      }
-    },
-    updateColumn(columnId, newTitle, newColor) {
-      const column = this.getColumnById(columnId);
-      if (column) {
-        column.title = newTitle;
-        column.color = newColor;
-      }
-    }
   }
 });

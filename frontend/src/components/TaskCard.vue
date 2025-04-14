@@ -17,8 +17,8 @@
     </v-dialog>
 
     <GenericModal title="Edit Task" :isOpen="showEditTaskModal"
-      :initialValues="{ title: task.title, description: task.description }" @submit="saveTask"
-      @close="showEditTaskModal = false">
+      :initialValues="{ title: task.title, description: task.description }" :showDelete="true" @submit="saveTask"
+      @delete="handleDeleteTask" @close="showEditTaskModal = false">
       <template #inputs="{ inputValues }">
         <v-text-field v-model="inputValues.title" label="Task Title" />
         <v-textarea v-model="inputValues.description" label="Task Description" rows="4" />
@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/board';
 
 const store = useBoardStore();
@@ -44,7 +44,19 @@ const showTaskModal = ref(false);
 const showEditTaskModal = ref(false);
 
 function saveTask(inputValues) {
-  store.updateTask(props.task.id, inputValues.title.trim(), inputValues.description.trim());
+  store.updateTask(props.task.id, {
+    title: inputValues.title.trim(),
+    description: inputValues.description.trim()
+  });
   showEditTaskModal.value = false;
 }
+
+function handleDeleteTask() {
+  store.deleteTask(props.task.id);
+  showEditTaskModal.value = false;
+}
+
+const taskTags = computed(() => {
+  return props.task.tags.map(tagId => store.tags[tagId]).filter(Boolean);
+});
 </script>

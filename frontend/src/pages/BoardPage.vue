@@ -73,7 +73,6 @@
         <v-color-picker v-model="inputValues.color" label="Column Color" />
       </template>
     </GenericModal>
-
   </v-container>
 </template>
 
@@ -84,26 +83,34 @@ import { useBoardStore } from '@/stores/board';
 
 const store = useBoardStore();
 
-const activeBoard = store.activeBoard;
-const columns = activeBoard?.columns || [];
-const tags = activeBoard?.tags || [];
+store.initializeFromDefault();
+
 
 const drawer = ref(false);
 const showAddColumnModal = ref(false);
 const showAddTagModal = ref(false);
 
+
+const tags = computed(() => store.getActiveTags);
 function addTag(inputValues) {
-  store.addTag(inputValues.title.trim(), true, inputValues.color);
+  store.createTag(inputValues.title.trim(), inputValues.color);
   showAddTagModal.value = false;
 }
 
+const columns = ref([...store.getActiveColumns]); // start with sorted copy
+
+watchEffect(() => {
+  columns.value = [...store.getActiveColumns].sort((a, b) => a.order - b.order);
+});
+
 function handleAddColumn(inputValues) {
-  store.addColumn(inputValues.title.trim(), inputValues.color);
+  store.createColumn(inputValues.title.trim(), inputValues.color);
   showAddColumnModal.value = false;
 }
 
-function onColumnDragEnd(evt) {
-  const movedColumnId = columns[evt.oldIndex].id;
-  store.updateColumnPosition(movedColumnId, evt.newIndex);
+function onColumnDragEnd() {
+  columns.value.forEach((col, index) => {
+    store.updateColumn(col.id, { order: index });
+  });
 }
 </script>

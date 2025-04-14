@@ -1,5 +1,6 @@
 import { setActivePinia, createPinia } from 'pinia';
 import { useBoardStore } from '@/stores/board';
+import defaultBoard from '@/data/defaultBoard.json'
 
 describe('Board Store', () => {
   let store;
@@ -7,254 +8,310 @@ describe('Board Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     store = useBoardStore();
-    store.activeBoardId = 1;
-    store.boards = [
-      {
-        id: 1,
-        name: 'Test Project',
-        columns: [
-          {
-            id: 0,
-            title: 'To Do',
-            tasks: [
-              { id: 101, title: 'Old Task Title', tags: [] }
-            ]
-          },
-          {
-            id: 1, title: 'In Progress', tasks: [
-              { id: 201, title: 'Task Title2', tags: [] }
-
-            ]
-          }
-        ],
-        tags: [
-          {
-            id: 1,
-            title: 'bug',
-            value: true,
-            color: '#FF5733'
-          },
-          {
-            id: 2,
-            title: 'feature',
-            value: true,
-            color: '#33FF57'
-          }
-        ]
-      }
-    ];
+    store.activeBoardId = defaultBoard.id;
+    store.boards = [defaultBoard];
+    store.columns = [...defaultBoard.columns];
+    store.tasks = [...defaultBoard.tasks];
+    store.tags = [...defaultBoard.tags];
   });
 
-
-  describe('addTask', () => {
-    it('adds a task with a description to the correct column', () => {
-      store.addTask(0, 'New Task', 'This is a description.');
-      const newTask = store.boards[0].columns[0].tasks.find(task => task.title === 'New Task');
-
-      expect(newTask).toBeDefined(); // Check that the task was added
-      expect(newTask.title).toBe('New Task'); // Check the title of the new task
-      expect(newTask.description).toBe('This is a description.'); // Check the description of the new task
+  describe('Task Actions', () => {
+    describe('createTask', () => {
+      it('creates a task with title only', () => {
+        store.createTask(1, 'New Task');
+        const task = store.tasks.find(task => task.title === 'New Task');
+        expect(task).toBeDefined();
+        expect(task.title).toBe('New Task');
+        expect(task.description).toBe('');
+        expect(task.tags).toEqual([]);
+        expect(task.order).toBe(2); // Assuming it's the 3rd task in the "To-Do" column
+        expect(task.columnId).toBe(1); // Ensure it's in the correct column
+      });
+      it('creates a task with a description', () => {
+        store.createTask(1, 'Task with Description', 'This is a description.');
+        const task = store.tasks.find(task => task.title === 'Task with Description');
+        expect(task).toBeDefined();
+        expect(task.description).toBe('This is a description.');
+      });
+      it('creates a task with tags', () => {
+        store.createTask(1, 'Task with Tag', '', [1]); // Assuming tag ID 1 exists
+        const task = store.tasks.find(task => task.title === 'Task with Tag');
+        expect(task).toBeDefined();
+        expect(task.tags).toContain(1);
+      });
+      it('creates a task in the correct column', () => {
+        store.createTask(2, 'Task for In Progress Column');
+        const task = store.tasks.find(task => task.title === 'Task for In Progress Column');
+        expect(task).toBeDefined();
+        expect(task.columnId).toBe(2);
+      });
     });
-    it('adds a task with an empty description', () => {
-      store.addTask(0, 'New Task', '');
-      const newTask = store.boards[0].columns[0].tasks.find(task => task.title === 'New Task');
-
-      expect(newTask).toBeDefined(); // Check that the task was added
-      expect(newTask.title).toBe('New Task'); // Check the title of the new task
-      expect(newTask.description).toBe(''); // Check the description of the new task
+    describe('updateTask', () => {
+      it('updates the title and description of a task', () => {
+        store.updateTask(1, {
+          title: 'Updated Title',
+          description: 'Updated Description',
+        });
+        const task = store.tasks.find(t => t.id === 1);
+        expect(task.title).toBe('Updated Title');
+        expect(task.description).toBe('Updated Description');
+      });
+      it('updates tags and dueDate of a task', () => {
+        store.updateTask(2, {
+          tags: [1],
+          dueDate: '2025-04-20',
+        });
+        const task = store.tasks.find(t => t.id === 2);
+        expect(task.tags).toEqual([1]);
+        expect(task.dueDate).toBe('2025-04-20');
+      });
+      it('updates multiple fields without affecting others', () => {
+        const originalTask = { ...store.tasks.find(t => t.id === 3) };
+        store.updateTask(3, {
+          title: 'New Title',
+          tags: [],
+        });
+        const updatedTask = store.tasks.find(t => t.id === 3);
+        expect(updatedTask.title).toBe('New Title');
+        expect(updatedTask.tags).toEqual([]);
+        expect(updatedTask.description).toBe(originalTask.description); // untouched
+      });
+      it('does nothing if task with given id does not exist', () => {
+        const before = JSON.stringify(store.tasks);
+        store.updateTask(999, { title: 'Should Not Exist' });
+        const after = JSON.stringify(store.tasks);
+        expect(after).toBe(before); // No change
+      });
     });
-    it('does not add a task to a non-existent column', () => {
-      store.addTask(999, 'Task in Non-existent Column');
-      expect(store.boards[0].columns[0].tasks).toHaveLength(1);
-    });
-    it('adds a task with a single tag to the correct column', () => {
-      store.addTask(0, 'Task with Tag', 'This task has a tag.', [1]);
-      const newTask = store.boards[0].columns[0].tasks.find(task => task.title === 'Task with Tag');
+    describe('moveTask', () => {
+      it('reorders a task within the same column', () => {
+        // Task 1 (order 0) and Task 2 (order 1) are in column 1
+        store.moveTask(1, 1, 1); // Move Task 1 from index 0 to 1
 
-      expect(newTask).toBeDefined(); // Check that the task was added
-      expect(newTask.tags).toContain(1); // Check that the tag ID 1 is associated with the task
-    });
-    it('adds a task with multiple tags to the correct column', () => {
-      store.addTask(0, 'Task with Multiple Tags', 'This task has multiple tags.', [1, 2]);
-      const newTask = store.boards[0].columns[0].tasks.find(task => task.title === 'Task with Multiple Tags');
+        const colTasks = store.tasks
+          .filter(t => t.columnId === 1)
+          .sort((a, b) => a.order - b.order);
 
-      expect(newTask).toBeDefined(); // Check that the task was added
-      expect(newTask.tags).toEqual([1, 2]); // Check that both tags are associated with the task
-    });
-  });
+        expect(colTasks[0].id).toBe(2); // Task 2 should now be first
+        expect(colTasks[1].id).toBe(1); // Task 1 should now be second
+        expect(colTasks[0].order).toBe(0);
+        expect(colTasks[1].order).toBe(1);
+      });
+      it('moves a task to a different column', () => {
+        // Move Task 1 (originally in column 1) to index 0 of column 2
+        store.moveTask(1, 0, 2);
 
-  describe('updateTask', () => {
-    it('updates the task title successfully', () => {
-      store.updateTask(101, 'Updated Task Title');
+        const col1Tasks = store.tasks
+          .filter(t => t.columnId === 1)
+          .sort((a, b) => a.order - b.order);
 
-      const updatedTask = store.boards[0].columns[0].tasks.find(task => task.id === 101);
-      expect(updatedTask).toBeDefined();
-      expect(updatedTask.title).toBe('Updated Task Title');
-    });
-    it('updates the task description successfully', () => {
-      store.updateTask(101, 'Updated Task Title', 'Updated description');
+        const col2Tasks = store.tasks
+          .filter(t => t.columnId === 2)
+          .sort((a, b) => a.order - b.order);
 
-      const updatedTask = store.boards[0].columns[0].tasks.find(task => task.id === 101);
-      expect(updatedTask).toBeDefined();
-      expect(updatedTask.title).toBe('Updated Task Title');
-      expect(updatedTask.description).toBe('Updated description'); // Check the updated description
-    });
-    it('does not update the task title for a non-existent task', () => {
-      const initialTitle = store.boards[0].columns[0].tasks[0].title;
-      store.updateTask(999, 'Invalid Task Title');
-
-      const updatedTask = store.boards[0].columns[0].tasks.find(task => task.id === 101);
-      expect(updatedTask.title).toBe(initialTitle);
-    });
-  });
-  describe('moveTaskBetweenColumns', () => {
-    it('moves a task from one column to another', () => {
-      // Move Task 1 from 'To Do' to 'In Progress'
-      store.moveTaskBetweenColumns(101, 0, 1, 0, 0);
-
-      // Check the tasks in 'To Do' column
-      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
-      expect(toDoColumn.tasks).toHaveLength(0); // Should have 1 task left
-      expect(toDoColumn.tasks.find(task => task.id === 101)).toBeUndefined(); // Task 1 should be removed
-
-      // Check the tasks in 'In Progress' column
-      const inProgressColumn = store.boards[0].columns.find(col => col.id === 1);
-      expect(inProgressColumn.tasks).toHaveLength(2); // Should have 1 task
-      expect(inProgressColumn.tasks.find(task => task.id === 101)).toBeDefined(); // Task 1 should be present
-    });
-
-    it('does not move a non-existent task', () => {
-      const initialTasksCount = store.boards[0].columns[0].tasks.length;
-
-      // Attempt to move a task that does not exist
-      store.moveTaskBetweenColumns(999, 0, 1, 0, 0); // Invalid task ID
-
-      // Check that the number of tasks in 'To Do' column is unchanged
-      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
-      expect(toDoColumn.tasks).toHaveLength(initialTasksCount); // Should still have the same number of tasks
-    });
-
-    it('does not move if the source or destination column does not exist', () => {
-      const initialTasksCount = store.boards[0].columns[0].tasks.length;
-
-      // Attempt to move a task with invalid column IDs
-      store.moveTaskBetweenColumns(101, 999, 1, 0, 0); // Invalid source column ID
-      store.moveTaskBetweenColumns(101, 0, 999, 0, 0); // Invalid destination column ID
-
-      // Check that the number of tasks in 'To Do' column is unchanged
-      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
-      expect(toDoColumn.tasks).toHaveLength(initialTasksCount); // Should still have the same number of tasks
-    });
-
-    it('handles moving tasks to the same column', () => {
-      // Move Task 1 to the same column at the same index
-      store.moveTaskBetweenColumns(101, 0, 0, 0, 0); // Move Task 1 to the same position in the same column
-
-      // Check the tasks in 'To Do' column
-      const toDoColumn = store.boards[0].columns.find(col => col.id === 0);
-      expect(toDoColumn.tasks).toHaveLength(1); // Should still have both tasks
-      expect(toDoColumn.tasks[0].id).toBe(101); // Task 1 should still be first
-    });
-  });
-  describe('addColumn', () => {
-    it('adds a new column with the specified title', () => {
-      store.addColumn('New Column');
-
-      const columns = store.boards[0].columns;
-      const newColumn = columns.find(col => col.title === 'New Column');
-
-      expect(newColumn).toBeDefined();
-      expect(newColumn.title).toBe('New Column');
-      expect(newColumn.tasks).toEqual([]);
-    });
-
-    it('adds a new column with an empty string title', () => {
-      store.addColumn('');
-
-      const columns = store.boards[0].columns;
-      const newColumn = columns.find(col => col.title === '');
-
-      expect(newColumn).toBeDefined();
-      expect(newColumn.tasks).toEqual([]);
-    });
-
-    it('generates a unique ID for each new column', () => {
-      store.addColumn('First Column');
-      store.addColumn('Second Column');
-
-      const [col1, col2] = store.boards[0].columns.slice(-2);
-
-      expect(col1.id).not.toBe(col2.id);
-      expect(typeof col1.id).toBe('string');
-      expect(typeof col2.id).toBe('string');
-    });
-
-    it('only adds columns to the active board', () => {
-      store.boards.push({
-        id: 2,
-        name: 'Inactive Project',
-        columns: []
+        expect(col1Tasks.some(t => t.id === 1)).toBe(false); // Task 1 should be gone from column 1
+        expect(col2Tasks[0].id).toBe(1); // Task 1 should be first in column 2
+        expect(col2Tasks[0].order).toBe(0);
       });
 
-      store.activeBoardId = 1;
-      store.addColumn('Active Column');
-
-      expect(store.boards[0].columns.find(col => col.title === 'Active Column')).toBeDefined();
-      expect(store.boards[1].columns.find(col => col.title === 'Active Column')).toBeUndefined();
+      it('does nothing if task is not found', () => {
+        const originalTasks = [...store.tasks];
+        store.moveTask(999, 0, 1); // Non-existent task ID
+        expect(store.tasks).toEqual(originalTasks);
+      });
+    });
+    describe('deleteTask', () => {
+      it('deletes a task by id', () => {
+        const initialTaskCount = store.tasks.length;
+        store.deleteTask(2);
+        const task = store.tasks.find(t => t.id === 2);
+        expect(task).toBeUndefined();
+        expect(store.tasks.length).toBe(initialTaskCount - 1);
+      });
+      it('does nothing when trying to delete a non-existent task', () => {
+        const initialTaskCount = store.tasks.length;
+        store.deleteTask(999);
+        expect(store.tasks.length).toBe(initialTaskCount);
+      });
+      it('does nothing when deleting a task from an empty column', () => {
+        store.tasks = store.tasks.filter(t => t.columnId !== 3);
+        store.deleteTask(3);
+        const task = store.tasks.find(t => t.id === 3);
+        expect(task).toBeUndefined();
+      });
     });
   });
-  describe('updateColumn', () => {
-    it('updates the column title correctly', () => {
-      store.updateColumn(1, 'Updated Title');
-      expect(store.boards[0].columns[1].title).toBe('Updated Title');
+  describe('Column Actions', () => {
+    describe('addColumn', () => {
+      it('adds a new column with title and color', () => {
+        const initialColumnCount = store.columns.length;
+        store.createColumn('New Column', '#123456');
+        const newColumn = store.columns.find(c => c.title === 'New Column');
+        expect(newColumn).toBeDefined();
+        expect(newColumn.title).toBe('New Column');
+        expect(newColumn.color).toBe('#123456');
+        expect(store.columns.length).toBe(initialColumnCount + 1);
+      });
+      it('assigns the correct order to the new column', () => {
+        const initialColumnCount = store.columns.filter(c => c.boardId === store.activeBoardId).length;
+        store.createColumn('New Column', '#123456');
+        const newColumn = store.columns.find(c => c.title === 'New Column');
+        expect(newColumn.order).toBe(initialColumnCount);
+      });
+      it('adds multiple columns and assigns correct orders', () => {
+        const initialColumnCount = store.columns.filter(c => c.boardId === store.activeBoardId).length;
+        store.createColumn('Column 1', '#ff0000');
+        store.createColumn('Column 2', '#00ff00');
+        store.createColumn('Column 3', '#0000ff');
+        const columns = store.columns.filter(c => c.boardId === store.activeBoardId);
+        expect(columns[0].order).toBe(initialColumnCount);
+        expect(columns[1].order).toBe(initialColumnCount + 1);
+        expect(columns[2].order).toBe(initialColumnCount + 2);
+      });
+      it('creates a new column with correct properties', () => {
+        store.createColumn('New Column', '#123456');
+        const newColumn = store.columns.find(c => c.title === 'New Column');
+        expect(newColumn).toBeDefined();
+        expect(newColumn.title).toBe('New Column');
+        expect(newColumn.color).toBe('#123456');
+        expect(newColumn.boardId).toBe(store.activeBoardId);
+      });
+      it('creates a column with empty title and color', () => {
+        store.createColumn('', '');
+        const newColumn = store.columns.find(c => c.title === '');
+        expect(newColumn).toBeDefined();
+        expect(newColumn.title).toBe('');
+        expect(newColumn.color).toBe('');
+      });
     });
-
-    it('does not update the title for a non-existent column', () => {
-      const initialTitle = store.boards[0].columns[0].title;
-      store.updateColumn(999, 'Invalid Title');
-      expect(store.boards[0].columns[0].title).toBe(initialTitle);
+    describe('updateColumn', () => {
+      it('updates a column with new title and color', () => {
+        const columnId = store.columns[0].id;
+        store.updateColumn(columnId, { title: 'Updated Column', color: '#123456' });
+        const updatedColumn = store.columns.find(c => c.id === columnId);
+        expect(updatedColumn).toBeDefined();
+        expect(updatedColumn.title).toBe('Updated Column');
+        expect(updatedColumn.color).toBe('#123456');
+      });
+      it('updates only the title of the column', () => {
+        const columnId = store.columns[0].id;
+        const originalColor = store.columns[0].color;
+        store.updateColumn(columnId, { title: 'New Title' });
+        const updatedColumn = store.columns.find(c => c.id === columnId);
+        expect(updatedColumn.title).toBe('New Title');
+        expect(updatedColumn.color).toBe(originalColor);
+      });
+      it('updates only the color of the column', () => {
+        const columnId = store.columns[0].id;
+        const originalTitle = store.columns[0].title;
+        store.updateColumn(columnId, { color: '#654321' });
+        const updatedColumn = store.columns.find(c => c.id === columnId);
+        expect(updatedColumn.color).toBe('#654321');
+        expect(updatedColumn.title).toBe(originalTitle);
+      });
+      it('does not update if the column does not exist', () => {
+        const initialColumnCount = store.columns.length;
+        store.updateColumn('non-existing-id', { title: 'New Title' });
+        expect(store.columns.length).toBe(initialColumnCount);
+      });
+      it('does not change the column order when updating other properties', () => {
+        const columnId = store.columns[0].id;
+        const originalOrder = store.columns[0].order;
+        store.updateColumn(columnId, { title: 'Updated Column', color: '#123456' });
+        const updatedColumn = store.columns.find(c => c.id === columnId);
+        expect(updatedColumn.order).toBe(originalOrder);
+      });
     });
+    describe('moveColumn', () => {
+      it('does nothing if oldIndex === newIndex', () => {
+        const before = JSON.stringify(
+          store.columns.filter(c => c.boardId === store.activeBoardId).sort((a, b) => a.order - b.order)
+        );
 
+        store.moveColumn(0, 0);
+
+        const after = JSON.stringify(
+          store.columns.filter(c => c.boardId === store.activeBoardId).sort((a, b) => a.order - b.order)
+        );
+
+        expect(after).toBe(before);
+      });
+      it('only updates columns from the active board', () => {
+        // Add columns from another board
+        store.columns.push(
+          { id: 99, boardId: 2, title: 'Other Board', order: 0, color: '#000' },
+        );
+
+        store.moveColumn(0, 1); // Should ignore column 99
+        const otherBoardCol = store.columns.find(c => c.id === 99);
+        expect(otherBoardCol.order).toBe(0); // Unchanged
+      });
+    });
+    describe('deleteColumn', () => {
+      it('removes the column from the columns array', () => {
+        store.deleteColumn(1); // Delete the "To-Do" column
+        const remainingColumns = store.columns.filter(col => col.boardId === 1);
+        expect(remainingColumns).toHaveLength(2); // Should have 2 columns left
+        expect(remainingColumns.some(col => col.id === 1)).toBe(false); // "To-Do" column should not be present
+      });
+      it('removes the tasks associated with the deleted column', () => {
+        store.deleteColumn(1); // Delete the "To-Do" column
+        const remainingTasks = store.tasks.filter(task => task.columnId === 1);
+        expect(remainingTasks).toHaveLength(0); // No tasks should be associated with the deleted column
+      });
+      it('does not remove columns or tasks from other boards', () => {
+        store.columns.push({ id: 4, boardId: 2, title: 'External Column', order: 0, color: '#000' });
+        store.tasks.push({ id: 4, columnId: 4, title: 'External Task', order: 0, description: '' });
+        store.deleteColumn(1); // Delete the "To-Do" column from board 1
+        const remainingColumns = store.columns.filter(col => col.boardId === 2);
+        expect(remainingColumns).toHaveLength(1); // The external column should still exist
+        const remainingTasks = store.tasks.filter(task => task.columnId === 4);
+        expect(remainingTasks).toHaveLength(1); // The external task should still exist
+      });
+      it('does nothing if the column does not exist', () => {
+        const before = JSON.stringify(store.columns);
+        store.deleteColumn(999); // Non-existing column ID
+        expect(JSON.stringify(store.columns)).toBe(before); // Ensure columns are unchanged
+      });
+    });
   });
-  describe('updateColumnPosition', () => {
-    it('moves a column to a new index', () => {
-      store.updateColumnPosition(1, 0); // Move "In Progress" to index 0
+  describe('Tag Actions', () => {
+    describe('createTag', () => {
+      it('creates and adds a new tag to the tags array', () => {
+        const title = 'feature';
+        const color = '#33FF57';
 
-      const columns = store.activeBoard.columns;
-      expect(columns[0].title).toBe('In Progress'); // Now the first column should be "In Progress"
-      expect(columns[1].title).toBe('To Do'); // Second column should be "To Do"
-    });
+        store.createTag(title, color);
 
-    it('does nothing if the column ID does not exist', () => {
-      const initialOrder = [...store.activeBoard.columns]; // Store the initial order
-      store.updateColumnPosition(999, 1); // Try to move a non-existent column
+        // Check if the new tag has been added to the tags array
+        const newTag = store.tags.find(tag => tag.title === title);
+        expect(newTag).toBeTruthy(); // Ensure the tag exists
+        expect(newTag.title).toBe(title); // Check title
+        expect(newTag.color).toBe(color); // Check color
+        expect(newTag.boardId).toBe(store.activeBoardId); // Check that the boardId is correct
+        expect(newTag.id).toBeDefined(); // Ensure the id is defined (should be a unique value)
+      });
+      it('generates a unique ID for each tag', () => {
+        const title1 = 'urgent';
+        const color1 = '#FF0000';
+        const title2 = 'enhancement';
+        const color2 = '#0000FF';
 
-      const columns = store.activeBoard.columns;
-      expect(columns).toEqual(initialOrder); // Order should remain unchanged
-    });
+        store.createTag(title1, color1);
+        store.createTag(title2, color2);
 
-    it('moves a column to the same index', () => {
-      store.updateColumnPosition(0, 0); // Move "To Do" to index 1 (same position)
+        const newTag1 = store.tags.find(tag => tag.title === title1);
+        const newTag2 = store.tags.find(tag => tag.title === title2);
 
-      const columns = store.activeBoard.columns;
-      expect(columns[0].title).toBe('To Do'); // Order should remain the same
-      expect(columns[1].title).toBe('In Progress');
-    });
+        expect(newTag1.id).not.toBe(newTag2.id); // Ensure the IDs are unique
+      });
+      it('creates a tag even if other tags already exist', () => {
+        const initialTagCount = store.tags.length;
 
-    it('moves a column to the end of the array', () => {
-      store.updateColumnPosition(0, 1); // Move "To Do" to the end
+        store.createTag('new feature', '#00FF00');
 
-      const columns = store.activeBoard.columns;
-      expect(columns[1].title).toBe('To Do'); // "To Do" should now be at index 2
-      expect(columns[0].title).toBe('In Progress'); // Index 0 should be "In Progress"
-    });
-
-    it('moves a column to the start of the array', () => {
-      store.updateColumnPosition(1, 0); // Move "In Progress" to index 0
-
-      const columns = store.activeBoard.columns;
-      expect(columns[0].title).toBe('In Progress'); // Index 2 should be "In Progress"
-      expect(columns[1].title).toBe('To Do'); // Index 1 should be "To Do"
+        expect(store.tags.length).toBe(initialTagCount + 1); // Ensure the tag count has increased by 1
+      });
     });
   });
 });

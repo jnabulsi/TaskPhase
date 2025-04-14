@@ -10,12 +10,10 @@
           <v-btn :style="{ backgroundColor: column.color }" v-bind="props" aria-label="Edit column options"
             title="Edit column options">
             <v-icon>mdi-cog-outline</v-icon>
-          </v-btn>
-        </template>
+          </v-btn> </template>
         <v-list>
           <v-list-item @click="openColumnEditModal">
-            <v-list-item-title>Edit Column</v-list-item-title>
-          </v-list-item>
+            <v-list-item-title>Edit Column</v-list-item-title> </v-list-item>
           <v-list-item @click="showTaskAddModal = true">
             <v-list-item-title>Add Task</v-list-item-title>
           </v-list-item>
@@ -26,10 +24,9 @@
     <v-divider />
 
     <v-card-text :data-column-id="props.column.id">
-      <draggable v-model="column.tasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list">
+      <draggable v-model="columnTasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list">
         <template #item="{ element }">
           <div>
-            {{ console.log('Checking filters for:', element) }}
             <TaskCard v-if="passesFilters(element)" :task="element" />
           </div>
         </template>
@@ -38,8 +35,8 @@
 
     <!-- Column Edit Modal -->
     <GenericModal title="Edit Column" :isOpen="showColumnEditModal"
-      :initialValues="{ title: newColumnTitle, color: newColumnColor }" @submit="saveColumn"
-      @close="showColumnEditModal = false">
+      :initialValues="{ title: newColumnTitle, color: newColumnColor }" :showDelete="true" @submit="handleUpdateColumn"
+      @delete="handleDeleteColumn" @close="showColumnEditModal = false">
       <template #inputs="{ inputValues }">
         <v-text-field v-model="inputValues.title" label="Column Title" />
         <v-color-picker v-model="inputValues.color" label="Column Color" />
@@ -66,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
 import { lightenColor } from '@/utils/utils';
@@ -80,29 +77,25 @@ const props = defineProps({
   }
 });
 
+const tags = computed(() => store.getActiveTags);
+
 function passesFilters(task) {
-  const activeTags = store.getActiveTags;
-  const taskTags = task.tags;
-  if (activeTags.length > 0) {
-    if (taskTags.length > 0) {
-      for (let i = 0; i < activeTags.length; i++) {
-        for (let j = 0; j < taskTags.length; j++) {
-          if (activeTags[i].id === taskTags[j]) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-  }
-  return true;
+  const board = store.getActiveBoard;
+  const activeTags = Object.values(store.tags).filter(
+    tag => tag.boardId === board.id && tag.value
+  );
+
+  if (activeTags.length === 0) return true;
+
+  const taskTagSet = new Set(task.tags);
+  return activeTags.some(tag => taskTagSet.has(tag.id));
 }
 
 const showTaskAddModal = ref(false);
 
 function addNewTask({ title, description, tags }) {
   if (title.trim()) {
-    store.addTask(props.column.id, title.trim(), description.trim(), tags);
+    store.createTask(props.column.id, title.trim(), description.trim(), tags);
     showTaskAddModal.value = false;
   }
 }
@@ -117,19 +110,32 @@ function openColumnEditModal() {
   showColumnEditModal.value = true;
 }
 
-function saveColumn(inputValues) {
-  store.updateColumn(props.column.id, inputValues.title.trim(), inputValues.color);
+function handleUpdateColumn(inputValues) {
+  store.updateColumn(props.column.id, {
+    title: inputValues.title.trim(),
+    color: inputValues.color,
+  });
   showColumnEditModal.value = false;
 }
 
+function handleDeleteColumn() {
+  showColumnEditModal.value = false;
+  store.deleteColumn(props.column.id);
+}
+
+const columnTasks = ref([]);
+
+watchEffect(() => {
+  columnTasks.value = store.getActiveTasks
+    .filter(task => task.columnId === props.column.id)
+    .sort((a, b) => a.order - b.order);
+});
+
 function onTaskDrop(event) {
+  const movedTaskId = event.item.id;
+  const newIndex = event.newIndex;
 
-  const movedTaskId = event.item.id; // The ID of the task that was moved
-  const fromColumnId = event.from.dataset.columnId; // Assuming you set a data attribute for column ID
-  const toColumnId = props.column.id; // The column where the task was dropped
-
-  // Update the store to reflect the new task location
-  store.moveTaskBetweenColumns(movedTaskId, fromColumnId, toColumnId, event.newIndex);
+  store.moveTask(movedTaskId, newIndex, props.column.id);
 }
 </script>
 
