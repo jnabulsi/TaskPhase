@@ -9,23 +9,23 @@
     {
       "id": 1,
       "boardId": 1,
-      "title": "To-Do",
+      "title": "id: 1 order: 200",
       "color": "#f0ad4e",
-      "order": 0
+      "order": 200
     },
     {
       "id": 2,
       "boardId": 1,
-      "title": "In Progress",
+      "title": "id: 2 order: 100",
       "color": "#007bff",
-      "order": 1
+      "order": 100
     },
     {
       "id": 3,
       "boardId": 1,
-      "title": "Done",
+      "title": "id: 3 order 300",
       "color": "#28a745",
-      "order": 2
+      "order": 300
     }
   ],
   "tasks": [

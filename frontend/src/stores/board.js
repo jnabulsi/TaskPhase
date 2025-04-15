@@ -71,6 +71,11 @@ export const useBoardStore = defineStore('board', {
         this.columns.splice(index, 1, updatedColumn);
       }
     },
+    updateColumnOrder(id, order) {
+      const column = this.columns.find(c => c.id === id);
+      if (!column) return;
+      column.order = order;
+    },
     moveColumn(oldIndex, newIndex) {
       if (oldIndex === newIndex) return;
 

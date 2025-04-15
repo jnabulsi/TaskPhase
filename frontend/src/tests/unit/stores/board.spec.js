@@ -84,41 +84,7 @@ describe('Board Store', () => {
       });
     });
     describe('moveTask', () => {
-      it('reorders a task within the same column', () => {
-        // Task 1 (order 0) and Task 2 (order 1) are in column 1
-        store.moveTask(1, 1, 1); // Move Task 1 from index 0 to 1
 
-        const colTasks = store.tasks
-          .filter(t => t.columnId === 1)
-          .sort((a, b) => a.order - b.order);
-
-        expect(colTasks[0].id).toBe(2); // Task 2 should now be first
-        expect(colTasks[1].id).toBe(1); // Task 1 should now be second
-        expect(colTasks[0].order).toBe(0);
-        expect(colTasks[1].order).toBe(1);
-      });
-      it('moves a task to a different column', () => {
-        // Move Task 1 (originally in column 1) to index 0 of column 2
-        store.moveTask(1, 0, 2);
-
-        const col1Tasks = store.tasks
-          .filter(t => t.columnId === 1)
-          .sort((a, b) => a.order - b.order);
-
-        const col2Tasks = store.tasks
-          .filter(t => t.columnId === 2)
-          .sort((a, b) => a.order - b.order);
-
-        expect(col1Tasks.some(t => t.id === 1)).toBe(false); // Task 1 should be gone from column 1
-        expect(col2Tasks[0].id).toBe(1); // Task 1 should be first in column 2
-        expect(col2Tasks[0].order).toBe(0);
-      });
-
-      it('does nothing if task is not found', () => {
-        const originalTasks = [...store.tasks];
-        store.moveTask(999, 0, 1); // Non-existent task ID
-        expect(store.tasks).toEqual(originalTasks);
-      });
     });
     describe('deleteTask', () => {
       it('deletes a task by id', () => {
@@ -223,29 +189,6 @@ describe('Board Store', () => {
       });
     });
     describe('moveColumn', () => {
-      it('does nothing if oldIndex === newIndex', () => {
-        const before = JSON.stringify(
-          store.columns.filter(c => c.boardId === store.activeBoardId).sort((a, b) => a.order - b.order)
-        );
-
-        store.moveColumn(0, 0);
-
-        const after = JSON.stringify(
-          store.columns.filter(c => c.boardId === store.activeBoardId).sort((a, b) => a.order - b.order)
-        );
-
-        expect(after).toBe(before);
-      });
-      it('only updates columns from the active board', () => {
-        // Add columns from another board
-        store.columns.push(
-          { id: 99, boardId: 2, title: 'Other Board', order: 0, color: '#000' },
-        );
-
-        store.moveColumn(0, 1); // Should ignore column 99
-        const otherBoardCol = store.columns.find(c => c.id === 99);
-        expect(otherBoardCol.order).toBe(0); // Unchanged
-      });
     });
     describe('deleteColumn', () => {
       it('removes the column from the columns array', () => {

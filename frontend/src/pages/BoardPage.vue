@@ -47,7 +47,7 @@
 
     <v-main>
       <v-row no-gutters class="pa-4 justify-center" style="overflow-x: auto; flex-wrap: nowrap;">
-        <draggable v-model="columns" group="columns" item-key="id" tag="div" class="d-flex" handle=".column-header"
+        <draggable :list="sortedColumns" group="columns" item-key="id" tag="div" class="d-flex" handle=".column-header"
           @end="onColumnDragEnd">
           <template #item="{ element }">
             <Column :column="element" :key="element.id" />
@@ -85,6 +85,32 @@ const store = useBoardStore();
 
 store.initializeFromDefault();
 
+const sortedColumns = computed(() =>
+  [...store.columns].sort((a, b) => a.order - b.order)
+)
+
+function onColumnDragEnd(evt) {
+  const { oldIndex, newIndex } = evt
+  if (oldIndex === newIndex) return
+
+  const ordered = [...store.columns].sort((a, b) => a.order - b.order)
+
+  const [moved] = ordered.splice(oldIndex, 1)
+  ordered.splice(newIndex, 0, moved)
+
+  const before = ordered[newIndex - 1]?.order
+  const after = ordered[newIndex + 1]?.order
+
+  let newOrder
+  if (before !== undefined && after !== undefined) {
+    newOrder = (before + after) / 2
+  } else if (before === undefined && after !== undefined) {
+    newOrder = after - 100
+  } else if (before !== undefined && after === undefined) {
+    newOrder = before + 100
+  }
+  store.updateColumnOrder(moved.id, newOrder)
+}
 
 const drawer = ref(false);
 const showAddColumnModal = ref(false);
@@ -97,20 +123,8 @@ function addTag(inputValues) {
   showAddTagModal.value = false;
 }
 
-const columns = ref([...store.getActiveColumns]); // start with sorted copy
-
-watchEffect(() => {
-  columns.value = [...store.getActiveColumns].sort((a, b) => a.order - b.order);
-});
-
 function handleAddColumn(inputValues) {
   store.createColumn(inputValues.title.trim(), inputValues.color);
   showAddColumnModal.value = false;
-}
-
-function onColumnDragEnd() {
-  columns.value.forEach((col, index) => {
-    store.updateColumn(col.id, { order: index });
-  });
 }
 </script>
