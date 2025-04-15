@@ -80,6 +80,7 @@
 import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
+import { computeOrder } from '@/utils/utils';
 
 const store = useBoardStore();
 
@@ -101,14 +102,8 @@ function onColumnDragEnd(evt) {
   const before = ordered[newIndex - 1]?.order
   const after = ordered[newIndex + 1]?.order
 
-  let newOrder
-  if (before !== undefined && after !== undefined) {
-    newOrder = (before + after) / 2
-  } else if (before === undefined && after !== undefined) {
-    newOrder = after - 100
-  } else if (before !== undefined && after === undefined) {
-    newOrder = before + 100
-  }
+  const newOrder = computeOrder(before, after)
+
   store.updateColumnOrder(moved.id, newOrder)
 }
 

@@ -23,14 +23,16 @@
 
     <v-divider />
 
-    <v-card-text :data-column-id="props.column.id">
-      <draggable v-model="columnTasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list">
-        <template #item="{ element }">
-          <div>
-            <TaskCard v-if="passesFilters(element)" :task="element" />
-          </div>
-        </template>
-      </draggable>
+    <v-card-text>
+      <div class="task-column" :data-column-id="props.column.id">
+        <draggable :list="sortedTasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list">
+          <template #item="{ element }">
+            <div>
+              <TaskCard v-if="passesFilters(element)" :task="element" />
+            </div>
+          </template>
+        </draggable>
+      </div>
     </v-card-text>
 
     <!-- Column Edit Modal -->
@@ -66,7 +68,7 @@
 import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
-import { lightenColor } from '@/utils/utils';
+import { lightenColor, computeOrder } from '@/utils/utils';
 
 const store = useBoardStore();
 
@@ -123,19 +125,44 @@ function handleDeleteColumn() {
   store.deleteColumn(props.column.id);
 }
 
-const columnTasks = ref([]);
 
-watchEffect(() => {
-  columnTasks.value = store.getActiveTasks
+const sortedTasks = computed(() =>
+  store.getActiveTasks
     .filter(task => task.columnId === props.column.id)
-    .sort((a, b) => a.order - b.order);
-});
+    .sort((a, b) => a.order - b.order)
+)
 
-function onTaskDrop(event) {
-  const movedTaskId = event.item.id;
-  const newIndex = event.newIndex;
+function onTaskDrop(evt) {
+  const { oldIndex, newIndex } = evt
+  const from = evt.from.closest('.task-column')
+  const to = evt.to.closest('.task-column')
 
-  store.moveTask(movedTaskId, newIndex, props.column.id);
+  if (oldIndex === newIndex && from === to) return
+
+  const oldColumnId = parseInt(from.dataset.columnId)
+  const newColumnId = parseInt(to.dataset.columnId)
+
+  const tasksInOldColumn = store.getActiveTasks
+    .filter(task => task.columnId === oldColumnId)
+    .sort((a, b) => a.order - b.order)
+
+  const movedTask = tasksInOldColumn[oldIndex]
+  const movedTaskId = movedTask?.id
+
+  const tasksInNewColumn = store.getActiveTasks
+    .filter(t => t.columnId === newColumnId && t.id !== movedTaskId)
+    .sort((a, b) => a.order - b.order)
+
+  const [moved] = tasksInOldColumn.splice(oldIndex, 1)
+  tasksInNewColumn.splice(newIndex, 0, moved)
+
+
+  const before = tasksInNewColumn[newIndex - 1]?.order
+  const after = tasksInNewColumn[newIndex + 1]?.order
+
+  const newOrder = computeOrder(before, after)
+
+  store.moveTask(movedTaskId, newOrder, newColumnId)
 }
 </script>
 

@@ -32,30 +32,30 @@
     {
       "id": 1,
       "columnId": 1,
-      "title": "Set up project",
+      "title": "id: 1 columnID: 1 order: 200",
       "description": "This is a description of the task.",
       "tags": [],
-      "order": 0
+      "order": 200
     },
     {
       "id": 2,
       "columnId": 1,
-      "title": "Create wireframe",
+      "title": "id: 2 columnID: 1 order: 100",
       "description": "This is a different description.",
       "tags": [
         1
       ],
-      "order": 1
+      "order": 100
     },
     {
       "id": 3,
       "columnId": 2,
-      "title": "Implement board page",
+      "title": "id: 3 columnID: 2 order: 100",
       "description": "",
       "tags": [
         1
       ],
-      "order": 0
+      "order": 100
     }
   ],
   "tags": [
