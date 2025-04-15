@@ -50,9 +50,18 @@ export const useBoardStore = defineStore('board', {
 
     // Column actions
     createColumn(title, color) {
-      const id = crypto.randomUUID();
       const boardId = this.activeBoardId;
-      const order = this.columns.filter(c => c.boardId === boardId).length;
+      const maxId = this.columns
+        .filter(col => col.boardId === boardId)
+        .reduce((max, col) => Math.max(max, col.id), 0);
+
+      const id = maxId + 1;
+
+      const maxOrder = this.columns
+        .filter(col => col.boardId === boardId)
+        .reduce((max, col) => Math.max(max, col.order), 0);
+
+      const order = maxOrder + 100;
 
       this.columns.push({
         id,

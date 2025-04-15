@@ -156,7 +156,6 @@ function onTaskDrop(evt) {
   const [moved] = tasksInOldColumn.splice(oldIndex, 1)
   tasksInNewColumn.splice(newIndex, 0, moved)
 
-
   const before = tasksInNewColumn[newIndex - 1]?.order
   const after = tasksInNewColumn[newIndex + 1]?.order
 

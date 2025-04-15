@@ -17,17 +17,41 @@
         </v-list-item>
 
         <v-divider class="my-2" />
+        <v-card class="mx-2 px-5" style="background-color: #424242">
+          <v-card-title class="text-h5">Tags</v-card-title>
 
-        <v-card class="mx-2 px-5 " :style="{ backgroundColor: '#424242' }">
-          <!-- Tags Section -->
-          <v-list-item-title class=" ma-2 text-h5">Tags</v-list-item-title>
-          <!-- List of Tags -->
-          <v-list>
-            <v-list-item class="pa-0" v-for="tag in tags" :key="tag.id">
-              <v-checkbox v-model="tag.value" :label="tag.title" :style="{ color: tag.color }" hide-details />
-            </v-list-item>
-          </v-list>
+          <v-divider class="mb-2" />
 
+          <v-container fluid class="pa-0">
+            <v-row v-for="tag in tags" :key="tag.id" align="center" class="ma-0 pa-2"
+              style="border-bottom: 1px solid #555">
+              <!-- Checkbox -->
+              <v-col cols="auto">
+                <v-checkbox v-model="tag.value" hide-details density="compact" :style="{ color: tag.color }" />
+              </v-col>
+
+              <!-- Tag Title -->
+              <v-col class="text-white">
+                {{ tag.title }}
+              </v-col>
+
+              <!-- Actions Menu -->
+              <v-col cols="auto">
+                <v-menu>
+                  <template #activator="{ props }">
+                    <v-btn icon v-bind="props">
+                      <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item @click="openTagEditModal(tag)">
+                      <v-list-item-title>Edit</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </v-col>
+            </v-row>
+          </v-container>
           <!-- Add Tag Button -->
           <v-list-item class="my-2 pa-4" @click="showAddTagModal = true" icon="mdi-plus">
             <template #prepend>
@@ -73,6 +97,17 @@
         <v-color-picker v-model="inputValues.color" label="Column Color" />
       </template>
     </GenericModal>
+
+    <!-- Edit Tag Modal -->
+    <GenericModal title="Edit Tag" :isOpen="showTagEditModal"
+      :initialValues="{ title: newTagTitle, color: newTagColor }" :showDelete="true" @submit="handleUpdateTag"
+      @delete="handleDeleteTag" @close="showTagEditModal = false">
+      <template #inputs="{ inputValues }">
+        <v-text-field v-model="inputValues.title" label="Tag Title" required />
+        <v-color-picker v-model="inputValues.color" label="Tag Color" />
+      </template>
+    </GenericModal>
+
   </v-container>
 </template>
 
@@ -116,6 +151,36 @@ const tags = computed(() => store.getActiveTags);
 function addTag(inputValues) {
   store.createTag(inputValues.title.trim(), inputValues.color);
   showAddTagModal.value = false;
+}
+
+const showTagEditModal = ref(false);
+const newTagTitle = ref('');
+const newTagColor = ref('');
+let editingTagId = ref(null);
+
+function openTagEditModal(tag) {
+  newTagTitle.value = tag.title;
+  newTagColor.value = tag.color;
+  editingTagId = tag.id;
+  showTagEditModal.value = true;
+}
+
+function handleUpdateTag(inputValues) {
+  console.log("inputValues: ", { inputValues })
+  const tagID = editingTagId
+  console.log("tag id: ", { tagID })
+  store.updateTag(editingTagId, {
+    title: inputValues.title.trim(),
+    color: inputValues.color,
+  });
+  showTagEditModal.value = false;
+  editingTagId = null;
+}
+
+function handleDeleteTag() {
+  store.deleteTag(editingTagId);
+  showTagEditModal.value = false;
+  editingTagId = null;
 }
 
 function handleAddColumn(inputValues) {
