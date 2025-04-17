@@ -66,7 +66,7 @@
     <!-- Top Bar -->
     <v-app-bar class="pa-1" app>
       <v-app-bar-nav-icon @click="drawer = !drawer" class="text-h5" />
-      <v-toolbar-title class="text-h5">Project Name</v-toolbar-title>
+      <v-toolbar-title class="text-h5"> board </v-toolbar-title>
     </v-app-bar>
 
     <v-main>
@@ -116,10 +116,14 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
 import { computeOrder } from '@/utils/utils';
+import { useRoute } from 'vue-router'
 
 const store = useBoardStore();
-
 store.initializeFromDefault();
+
+const route = useRoute()
+const boardId = computed(() => route.params.id)
+const boardName = computed(() => store.getBoardNameByBoardId(boardId.value));
 
 const sortedColumns = computed(() =>
   [...store.columns].sort((a, b) => a.order - b.order)

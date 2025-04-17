@@ -10,6 +10,15 @@ export const useBoardStore = defineStore('board', {
     tags: [],
   }),
   getters: {
+    getBoardNameByBoardId(boardId) {
+      const board = this.boards.find(board => board.id === boardId);
+      return board ? board.name : null;
+    },
+    getColumnsByBoardId(boardId) {
+      return this.columns
+        .filter(column => column.boardId === boardId)
+        .sort((a, b) => a.order - b.order)
+    },
     getActiveBoard(state) {
       return state.boards.find(b => b.id === state.activeBoardId);
     },
@@ -18,6 +27,9 @@ export const useBoardStore = defineStore('board', {
     },
     getActiveTags: (state) => {
       return state.tags.filter(tag => tag.boardId === state.activeBoardId);
+    },
+    getTagById: (state) => {
+      return (id) => state.tags.find(tag => tag.id === id);
     },
     getActiveTasks: (state) => {
       const activeBoardId = state.activeBoardId;

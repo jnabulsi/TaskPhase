@@ -1,33 +1,55 @@
 <template>
   <v-container fluid>
-    <v-row align="center" justify="center" class="fill-height">
+    <v-row justify="center" class="mt-8 pt-16 pa-8 fill-height">
       <v-col cols="12" md="6" class="text-center">
-        <v-card>
-          <v-card-title>
-            <h1>TaskForge</h1>
-          </v-card-title>
-          <v-card-subtitle>
-            <h3>Minimal Task Management Tool</h3>
-          </v-card-subtitle>
-          <v-card-text>
-            <p>
-              Welcome to TaskForge, your go-to tool for managing tasks efficiently and effortlessly.
+        <h1 class="text-h4 font-weight-bold mb-2">Boards</h1>
+        <p class="text-subtitle-1 mb-6">
+          Lightweight boards for devs & teams
+        </p>
+        <v-btn class="ma-2 mr-6" color="primary" @click="goLocal">
+          Try it
+        </v-btn>
+        <v-btn class="ma-2 ml-6" color="secondary" @click="goLogin">
+          Log in
+        </v-btn>
+
+        <v-divider class="my-6" />
+
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-icon size="32" class="mb-2">mdi-flash</v-icon>
+            <h2 class="text-h6 font-weight-bold mb-1">Try it instantly</h2>
+            <p class="text-body-2">
+              No account needed. Your boards are saved in your browser.
             </p>
-          </v-card-text>
-          <v-card-actions class="d-flex justify-center">
-            <v-btn color="primary" @click="handleGetStarted">
-              Get Started
-            </v-btn>
-          </v-card-actions>
-        </v-card>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-icon size="32" class="mb-2">mdi-lock</v-icon>
+            <h2 class="text-h6 font-weight-bold mb-1">Log in for full features</h2>
+            <p class="text-body-2">
+              Save to the cloud, collaborate with others, and sync across devices.
+            </p>
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script setup>
-const handleGetStarted = () => {
-  alert('Get Started button clicked!');
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function goLocal() {
+  // Handle local mode navigation
+  router.push('/dashboard')
+  console.log('Entering local mode...');
+}
+
+function goLogin() {
+  // Handle login navigation
+  console.log('Navigating to login...');
 }
 </script>
 

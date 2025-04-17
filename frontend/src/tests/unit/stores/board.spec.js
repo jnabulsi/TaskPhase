@@ -84,7 +84,32 @@ describe('Board Store', () => {
       });
     });
     describe('moveTask', () => {
+      it('should not change anything if the task does not exist', () => {
+        store.moveTask(999, 150, 2); // invalid task
 
+        const unchanged = store.tasks.map(t => ({ id: t.id, columnId: t.columnId, order: t.order }));
+        expect(unchanged).toEqual([
+          { id: 1, columnId: 1, order: 200 },
+          { id: 2, columnId: 1, order: 100 },
+          { id: 3, columnId: 2, order: 100 },
+        ]);
+      });
+
+      it('should not change anything if the column does not exist', () => {
+        store.moveTask(1, 150, 999); // invalid column
+
+        const task = store.tasks.find(t => t.id === 1);
+        expect(task.columnId).toBe(1);
+        expect(task.order).toBe(200);
+      });
+
+      it('should allow moving to the same column with a new order', () => {
+        store.moveTask(2, 300, 1); // move task 2 within the same column
+
+        const task = store.tasks.find(t => t.id === 2);
+        expect(task.columnId).toBe(1);
+        expect(task.order).toBe(300);
+      });
     });
     describe('deleteTask', () => {
       it('deletes a task by id', () => {
@@ -122,7 +147,7 @@ describe('Board Store', () => {
         const initialColumnCount = store.columns.filter(c => c.boardId === store.activeBoardId).length;
         store.createColumn('New Column', '#123456');
         const newColumn = store.columns.find(c => c.title === 'New Column');
-        expect(newColumn.order).toBe(initialColumnCount);
+        expect(newColumn.order).toBe(initialColumnCount + 100);
       });
       it('adds multiple columns and assigns correct orders', () => {
         const initialColumnCount = store.columns.filter(c => c.boardId === store.activeBoardId).length;
@@ -130,9 +155,9 @@ describe('Board Store', () => {
         store.createColumn('Column 2', '#00ff00');
         store.createColumn('Column 3', '#0000ff');
         const columns = store.columns.filter(c => c.boardId === store.activeBoardId);
-        expect(columns[0].order).toBe(initialColumnCount);
-        expect(columns[1].order).toBe(initialColumnCount + 1);
-        expect(columns[2].order).toBe(initialColumnCount + 2);
+        expect(columns[0].order).toBe(initialColumnCount + 100);
+        expect(columns[1].order).toBe(initialColumnCount + 200);
+        expect(columns[2].order).toBe(initialColumnCount + 300);
       });
       it('creates a new column with correct properties', () => {
         store.createColumn('New Column', '#123456');
@@ -189,6 +214,11 @@ describe('Board Store', () => {
       });
     });
     describe('moveColumn', () => {
+      it('should update the order of an existing column', () => {
+        store.updateColumnOrder(1, 150);
+        const column = store.columns.find(c => c.id === 1);
+        expect(column.order).toBe(150);
+      });
     });
     describe('deleteColumn', () => {
       it('removes the column from the columns array', () => {
@@ -258,4 +288,3 @@ describe('Board Store', () => {
     });
   });
 });
-
