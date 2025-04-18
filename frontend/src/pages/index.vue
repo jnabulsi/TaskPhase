@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row justify="center" class="mt-8 pt-16 pa-8 fill-height">
       <v-col cols="12" md="6" class="text-center">
-        <h1 class="text-h4 font-weight-bold mb-2">Boards</h1>
+        <h1 class="text-h4 font-weight-bold mb-2">TaskPhase</h1>
         <p class="text-subtitle-1 mb-6">
           Lightweight boards for devs & teams
         </p>
