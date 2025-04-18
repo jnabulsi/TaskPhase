@@ -38,13 +38,22 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { useBoardStore } from '@/stores/board'
+
+const store = useBoardStore();
+store.loadFromStorage()
 
 const router = useRouter()
 
 function goLocal() {
   // Handle local mode navigation
-  router.push('/dashboard')
+  store.localMode = true
+  store.saveToStorage();
   console.log('Entering local mode...');
+
+  nextTick(() => {
+    router.push('/dashboard');
+  });
 }
 
 function goLogin() {

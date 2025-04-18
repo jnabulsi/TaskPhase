@@ -9,7 +9,7 @@
         <template #activator="{ props }">
           <v-btn :style="{ backgroundColor: column.color }" v-bind="props" aria-label="Edit column options"
             title="Edit column options">
-            <v-icon>mdi-cog-outline</v-icon>
+            <v-icon>mdi-dots-vertical</v-icon>
           </v-btn> </template>
         <v-list>
           <v-list-item @click="openColumnEditModal">

@@ -6,15 +6,15 @@
         <v-divider></v-divider>
 
         <!-- Profile -->
-        <v-list-item class="d-flex align-center justify-center" @click="goToProfile">
+        <v-list-item v-if="!store.localMode" class="d-flex align-center justify-center" @click="goToProfile">
           <v-icon class="ml-2" size="40">mdi-account</v-icon>
           <span class="ml-1">Profile</span>
         </v-list-item>
 
-        <v-divider></v-divider>
+        <v-divider v-if="!store.localMode"></v-divider>
 
         <!-- Create -->
-        <v-list-item class="d-flex align-center justify-center" @click="createBoard">
+        <v-list-item class="d-flex align-center justify-center" @click="showAddBoardModal = true">
           <v-icon class="ml-2" size="40">mdi-plus</v-icon>
           <span class="ml-1">Create</span>
         </v-list-item>
@@ -34,12 +34,35 @@
     <v-main class="dashboard-main">
       <DashboardContent />
     </v-main>
+    <!-- Add Board Modal -->
+    <GenericModal title="Add New Board" :isOpen="showAddBoardModal" :initialValues="{ title: '' }"
+      @submit="handleAddBoard" @close="showAddBoardModal = false">
+      <template #inputs="{ inputValues }">
+        <v-text-field v-model="inputValues.title" label="Board Title" required />
+      </template>
+    </GenericModal>
+
   </v-layout>
 </template>
 
 <script setup>
-function createBoard() {
-  // open create modal
+
+import { useBoardStore } from '@/stores/board'
+
+const store = useBoardStore();
+store.loadFromStorage()
+
+const localMode = store.localMode
+console.log({ localMode })
+
+const boards = store.boards
+
+console.log({ boards })
+
+const showAddBoardModal = ref(false);
+function handleAddBoard(inputValues) {
+  store.createBoard(inputValues.title.trim());
+  showAddBoardModal.value = false;
 }
 
 function goToSettings() {
@@ -57,4 +80,3 @@ function goToProfile() {
   min-height: 100vh;
 }
 </style>
-

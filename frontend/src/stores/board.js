@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import defaultBoards from '@/data/defaultBoard.json'
 
 export const useBoardStore = defineStore('board', {
   state: () => ({
@@ -8,10 +7,12 @@ export const useBoardStore = defineStore('board', {
     columns: [],
     tasks: [],
     tags: [],
+    localMode: false,
   }),
   getters: {
     getBoardNameByBoardId(boardId) {
       const board = this.boards.find(board => board.id === boardId);
+      console.log("board", { board })
       return board ? board.name : null;
     },
     getColumnsByBoardId(boardId) {
@@ -19,9 +20,7 @@ export const useBoardStore = defineStore('board', {
         .filter(column => column.boardId === boardId)
         .sort((a, b) => a.order - b.order)
     },
-    getActiveBoard(state) {
-      return state.boards.find(b => b.id === state.activeBoardId);
-    },
+    getActiveBoard: (state) => state.boards.find(b => b.id === state.activeBoardId),
     getActiveColumns: (state) => {
       return state.columns.filter(col => col.boardId === state.activeBoardId);
     },
@@ -43,45 +42,71 @@ export const useBoardStore = defineStore('board', {
     },
   },
   actions: {
-    // dev init
-    initializeFromDefault() {
-      this.boards = defaultBoards.boards;
-      this.columns = defaultBoards.columns;
-      this.tasks = defaultBoards.tasks;
-      this.tags = defaultBoards.tags;
-      this.activeBoardId = this.boards[0]?.id || null;
-    },
+    loadFromStorage() {
+      console.log("start load");
 
+      // Only load from localStorage if localMode is true
+      const saved = localStorage.getItem('taskforge-data');
+
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.localMode = parsed.localMode ?? false;  // Set localMode properly
+        console.log("in load", { localMode: this.localMode });
+
+        if (this.localMode) {
+          this.boards = parsed.boards || [];
+          this.columns = parsed.columns || [];
+          this.tasks = parsed.tasks || [];
+          this.tags = parsed.tags || [];
+          this.activeBoardId = parsed.activeBoardId || this.boards[0]?.id || null;
+          console.log("Loaded boards:", this.boards);
+        }
+      } else {
+        console.log("No data found in localStorage");
+      }
+    },
+    saveToStorage() {
+      console.log("start save");
+      if (!this.localMode) return;  // Only save to storage if localMode is true
+
+      localStorage.setItem('taskforge-data', JSON.stringify({
+        boards: this.boards,
+        columns: this.columns,
+        tasks: this.tasks,
+        tags: this.tags,
+        activeBoardId: this.activeBoardId,
+        localMode: this.localMode,  // Make sure localMode is saved
+      }));
+
+      console.log("Data saved to localStorage");
+    },
     // Board actions
     setActiveBoard(id) {
       this.activeBoardId = id;
+      this.saveToStorage()
     },
     createBoard(name) {
       this.boards.push({ id: crypto.randomUUID(), name });
+      this.saveToStorage()
     },
 
     // Column actions
     createColumn(title, color) {
       const boardId = this.activeBoardId;
-      const maxId = this.columns
+
+      const order = this.columns
         .filter(col => col.boardId === boardId)
-        .reduce((max, col) => Math.max(max, col.id), 0);
-
-      const id = maxId + 1;
-
-      const maxOrder = this.columns
-        .filter(col => col.boardId === boardId)
-        .reduce((max, col) => Math.max(max, col.order), 0);
-
-      const order = maxOrder + 100;
+        .reduce((max, col) => Math.max(max, col.order), 0) + 100;
 
       this.columns.push({
-        id,
+        id: crypto.randomUUID(),
         boardId,
         title,
         color,
         order,
       });
+
+      this.saveToStorage()
     },
     updateColumn(id, updates) {
       const index = this.columns.findIndex(c => c.id === id);
@@ -90,16 +115,19 @@ export const useBoardStore = defineStore('board', {
         const updatedColumn = { ...this.columns[index], ...updates };
         // Replace the old column with the new updated column
         this.columns.splice(index, 1, updatedColumn);
+        this.saveToStorage()
       }
     },
     updateColumnOrder(id, order) {
       const column = this.columns.find(c => c.id === id);
       if (!column) return;
       column.order = order;
+      this.saveToStorage()
     },
     deleteColumn(id) {
       this.columns = this.columns.filter(c => c.id !== id);
       this.tasks = this.tasks.filter(t => t.columnId !== id);
+      this.saveToStorage()
     },
 
     // Task actions
@@ -114,11 +142,13 @@ export const useBoardStore = defineStore('board', {
         dueDate,
         order: this.tasks.filter(t => t.columnId === columnId).length,
       });
+      this.saveToStorage()
     },
     updateTask(id, updates) {
       const task = this.tasks.find(t => t.id === id);
       if (task) {
         Object.assign(task, updates);
+        this.saveToStorage()
       }
     },
     moveTask(taskId, order, columnId) {
@@ -127,9 +157,11 @@ export const useBoardStore = defineStore('board', {
       if (!column || !task) return;
       task.order = order;
       task.columnId = columnId;
+      this.saveToStorage()
     },
     deleteTask(id) {
       this.tasks = this.tasks.filter(task => task.id !== id);
+      this.saveToStorage()
     },
 
     // Tag actions
@@ -142,11 +174,13 @@ export const useBoardStore = defineStore('board', {
         color,
       };
       this.tags.push(newTag);
+      this.saveToStorage()
     },
     updateTag(id, updates) {
       const tag = this.tags.find(tag => tag.id === id);
       if (tag) {
         Object.assign(tag, updates);
+        this.saveToStorage()
       }
     },
     deleteTag(id) {
@@ -157,6 +191,7 @@ export const useBoardStore = defineStore('board', {
       for (const task of this.tasks) {
         task.tags = task.tags.filter(tid => tid !== id);
       }
+      this.saveToStorage()
     },
   }
 });

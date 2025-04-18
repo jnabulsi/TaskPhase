@@ -37,8 +37,6 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const boardStore = useBoardStore()
 
-boardStore.initializeFromDefault();
-
 const search = ref('')
 
 const filteredBoards = computed(() => {
@@ -56,7 +54,6 @@ const filteredBoards = computed(() => {
 })
 
 function goToBoard(boardId) {
-  console.log("test")
   boardStore.activeBoardId = boardId
   router.push(`/board/${boardId}`)
 }

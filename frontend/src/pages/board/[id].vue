@@ -66,7 +66,7 @@
     <!-- Top Bar -->
     <v-app-bar class="pa-1" app>
       <v-app-bar-nav-icon @click="drawer = !drawer" class="text-h5" />
-      <v-toolbar-title class="text-h5"> board </v-toolbar-title>
+      <v-toolbar-title class="text-h5"> {{ boardName }}</v-toolbar-title>
     </v-app-bar>
 
     <v-main>
@@ -116,23 +116,32 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
 import { computeOrder } from '@/utils/utils';
-import { useRoute } from 'vue-router'
 
+const route = useRoute();
 const store = useBoardStore();
-store.initializeFromDefault();
+store.loadFromStorage()
+const boardId = route.params.id;
 
-const route = useRoute()
-const boardId = computed(() => route.params.id)
-const boardName = computed(() => store.getBoardNameByBoardId(boardId.value));
+watchEffect(() => {
+  if (store.boards.find(b => b.id === boardId)) {
+    store.setActiveBoard(boardId)
+  }
+})
+
+function getBoardNameByBoardId(boardId) {
+  const board = store.boards.find(board => board.id === boardId);
+  return board ? board.name : null;
+}
+
+const boardName = getBoardNameByBoardId(boardId);
 
 const sortedColumns = computed(() =>
-  [...store.columns].sort((a, b) => a.order - b.order)
+  store.getActiveColumns.sort((a, b) => a.order - b.order)
 )
 
 function onColumnDragEnd(evt) {
   const { oldIndex, newIndex } = evt
   if (oldIndex === newIndex) return
-
   const ordered = [...store.columns].sort((a, b) => a.order - b.order)
 
   const [moved] = ordered.splice(oldIndex, 1)
@@ -170,9 +179,6 @@ function openTagEditModal(tag) {
 }
 
 function handleUpdateTag(inputValues) {
-  console.log("inputValues: ", { inputValues })
-  const tagID = editingTagId
-  console.log("tag id: ", { tagID })
   store.updateTag(editingTagId, {
     title: inputValues.title.trim(),
     color: inputValues.color,
