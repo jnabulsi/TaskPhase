@@ -7,7 +7,16 @@
           <v-list-item-title class="text-h6"></v-list-item-title>
         </v-list-item>
 
-        <!-- Columns Section -->
+        <!-- Dashboard Button -->
+        <v-divider class="my-2" />
+        <v-list-item class="ma-2 pa-4" @click="goToDashboard" icon="mdi-arrow-left">
+          <template #prepend>
+            <v-icon class="text-h4">mdi-arrow-left</v-icon>
+          </template>
+          <v-list-item-title class="text-h6">Dashboard</v-list-item-title>
+        </v-list-item>
+
+        <!-- Add Column Section -->
         <v-divider class="my-2" />
         <v-list-item class="ma-2 pa-4" @click="showAddColumnModal = true" icon="mdi-plus">
           <template #prepend>
@@ -119,8 +128,10 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import { useBoardStore } from '@/stores/board';
 import { computeOrder } from '@/utils/utils';
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute();
+const router = useRouter();
 const store = useBoardStore();
 store.loadFromStorage()
 const boardId = route.params.id;
@@ -199,6 +210,10 @@ function handleDeleteTag() {
 function handleAddColumn(inputValues) {
   store.createColumn(inputValues.title.trim(), inputValues.color);
   showAddColumnModal.value = false;
+}
+
+function goToDashboard() {
+  router.push('/dashboard');
 }
 </script>
 <style scoped>
