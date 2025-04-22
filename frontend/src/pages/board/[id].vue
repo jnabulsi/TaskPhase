@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- Sidebar -->
-    <v-navigation-drawer v-model="drawer" :width="350" temporary app>
+    <v-navigation-drawer v-model="drawer" :width="350" app>
       <v-list>
         <v-list-item>
           <v-list-item-title class="text-h6"></v-list-item-title>
@@ -69,15 +69,18 @@
       <v-toolbar-title class="text-h5"> {{ boardName }}</v-toolbar-title>
     </v-app-bar>
 
-    <v-main>
-      <v-row no-gutters class="pa-4 justify-center" style="overflow-x: auto; flex-wrap: nowrap;">
-        <draggable :list="sortedColumns" group="columns" item-key="id" tag="div" class="d-flex" handle=".column-header"
-          @end="onColumnDragEnd">
-          <template #item="{ element }">
-            <Column :column="element" :key="element.id" />
-          </template>
-        </draggable>
-      </v-row>
+    <!-- Columns -->
+    <v-main class="pa-0">
+      <div class="column-scroll-wrapper mt-16">
+        <v-row no-gutters class="columns-row">
+          <draggable :list="sortedColumns" group="columns" item-key="id" tag="div" class="d-flex"
+            handle=".column-header" @end="onColumnDragEnd">
+            <template #item="{ element }">
+              <Column :column="element" :key="element.id" />
+            </template>
+          </draggable>
+        </v-row>
+      </div>
     </v-main>
 
     <!-- Add Tag Modal -->
@@ -198,3 +201,17 @@ function handleAddColumn(inputValues) {
   showAddColumnModal.value = false;
 }
 </script>
+<style scoped>
+.column-scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.columns-row {
+  flex-wrap: nowrap;
+  min-width: max-content;
+  justify-content: center;
+}
+</style>
