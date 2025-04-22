@@ -74,6 +74,19 @@ const filteredBoards = computed(() => {
     })
 })
 
+function defaultBordInit() {
+  if (boardStore.boards.length === 0) {
+    store.createBoard("Default Board");
+
+    store.createColumn("To Do", "#42A5F5");
+    store.createColumn("In Progress", "#FFB300");
+    store.createColumn("Done", "#66BB6A");
+
+    //get col id from the created cols
+    store.createTask(columnId, title, description = '', tags = [],);
+  }
+}
+
 function goToBoard(boardId) {
   boardStore.activeBoardId = boardId
   router.push(`/board/${boardId}`)
@@ -90,13 +103,14 @@ function openBoardEditModal(board) {
   showBoardEditModal.value = true
 }
 function handleUpdateBoard(inputValues) {
+  showBoardEditModal.value = false
   boardStore.updateBoard(selectedBoardId.value, {
     name: inputValues.title.trim(),
   })
-  showBoardEditModal.value = false
 }
 
 function handleDeleteBoard(boardId) {
+  showBoardEditModal.value = false
   boardStore.deleteBoard(boardId)
 }
 
