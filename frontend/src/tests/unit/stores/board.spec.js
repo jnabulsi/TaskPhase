@@ -215,7 +215,7 @@ describe('Board Store', () => {
     });
     describe('moveColumn', () => {
       it('should update the order of an existing column', () => {
-        store.updateColumnOrder(1, 150);
+        store.moveColumn(1, 150);
         const column = store.columns.find(c => c.id === 1);
         expect(column.order).toBe(150);
       });

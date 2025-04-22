@@ -40,6 +40,9 @@ export const useBoardStore = defineStore('board', {
         columnIds.includes(task.columnId)
       );
     },
+    getTaskById: (state) => (id) => {
+      return state.tasks.find(task => task.id === id)
+    }
   },
   actions: {
     loadFromStorage() {
@@ -59,7 +62,6 @@ export const useBoardStore = defineStore('board', {
           this.tasks = parsed.tasks || [];
           this.tags = parsed.tags || [];
           this.activeBoardId = parsed.activeBoardId || this.boards[0]?.id || null;
-          console.log("Loaded boards:", this.boards);
         }
       } else {
         console.log("No data found in localStorage");
@@ -77,8 +79,6 @@ export const useBoardStore = defineStore('board', {
         activeBoardId: this.activeBoardId,
         localMode: this.localMode,  // Make sure localMode is saved
       }));
-
-      console.log("Data saved to localStorage");
     },
     // Board actions
     setActiveBoard(id) {
@@ -118,11 +118,12 @@ export const useBoardStore = defineStore('board', {
         this.saveToStorage()
       }
     },
-    updateColumnOrder(id, order) {
+    moveColumn(id, order) {
       const column = this.columns.find(c => c.id === id);
       if (!column) return;
       column.order = order;
       this.saveToStorage()
+      this.loadFromStorage()
     },
     deleteColumn(id) {
       this.columns = this.columns.filter(c => c.id !== id);
@@ -153,11 +154,18 @@ export const useBoardStore = defineStore('board', {
     },
     moveTask(taskId, order, columnId) {
       const column = this.columns.find(c => c.id === columnId);
-      const task = this.tasks.find(t => t.id === taskId)
-      if (!column || !task) return;
+      const task = this.tasks.find(t => t.id === taskId);
+
+      if (!column || !task) {
+        console.warn("Column or task not found.", { taskId, columnId });
+        return;
+      }
+
       task.order = order;
       task.columnId = columnId;
-      this.saveToStorage()
+
+      this.saveToStorage();
+      this.loadFromStorage();
     },
     deleteTask(id) {
       this.tasks = this.tasks.filter(task => task.id !== id);

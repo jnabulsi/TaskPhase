@@ -156,7 +156,7 @@ const sortedColumns = computed(() =>
 function onColumnDragEnd(evt) {
   const { oldIndex, newIndex } = evt
   if (oldIndex === newIndex) return
-  const ordered = store.getActiveColumns().sort((a, b) => a.order - b.order)
+  const ordered = store.getActiveColumns.sort((a, b) => a.order - b.order)
 
   const [moved] = ordered.splice(oldIndex, 1)
   ordered.splice(newIndex, 0, moved)
@@ -166,7 +166,7 @@ function onColumnDragEnd(evt) {
 
   const newOrder = computeOrder(before, after)
 
-  store.updateColumnOrder(moved.id, newOrder)
+  store.moveColumn(moved.id, newOrder)
 }
 
 const drawer = ref(false);

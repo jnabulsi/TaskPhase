@@ -24,8 +24,9 @@
     <v-divider />
 
     <v-card-text>
-      <div class="task-column" :data-column-id="props.column.id">
-        <draggable :list="sortedTasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list">
+      <div class="task-column">
+        <draggable :list="sortedTasks" item-key="id" group="tasks" @end="onTaskDrop" class="task-list"
+          :data-column-id="column.id">
           <template #item="{ element }">
             <div>
               <TaskCard v-if="passesFilters(element)" :task="element" />
@@ -133,35 +134,24 @@ const sortedTasks = computed(() =>
 )
 
 function onTaskDrop(evt) {
-  const { oldIndex, newIndex } = evt
-  const from = evt.from.closest('.task-column')
-  const to = evt.to.closest('.task-column')
+  const movedTask = evt.item.__draggable_context?.element;
+  if (!movedTask) return;
 
-  if (oldIndex === newIndex && from === to) return
-
-  const oldColumnId = parseInt(from.dataset.columnId)
-  const newColumnId = parseInt(to.dataset.columnId)
-
-  const tasksInOldColumn = store.getActiveTasks
-    .filter(task => task.columnId === oldColumnId)
-    .sort((a, b) => a.order - b.order)
-
-  const movedTask = tasksInOldColumn[oldIndex]
-  const movedTaskId = movedTask?.id
+  const movedTaskId = movedTask.id;
+  const newColumnId = evt.to?.dataset?.columnId;
+  const newIndex = evt.newIndex;
 
   const tasksInNewColumn = store.getActiveTasks
     .filter(t => t.columnId === newColumnId && t.id !== movedTaskId)
-    .sort((a, b) => a.order - b.order)
+    .sort((a, b) => a.order - b.order);
 
-  const [moved] = tasksInOldColumn.splice(oldIndex, 1)
-  tasksInNewColumn.splice(newIndex, 0, moved)
+  tasksInNewColumn.splice(newIndex, 0, movedTask);
 
-  const before = tasksInNewColumn[newIndex - 1]?.order
-  const after = tasksInNewColumn[newIndex + 1]?.order
+  const before = tasksInNewColumn[newIndex - 1]?.order;
+  const after = tasksInNewColumn[newIndex + 1]?.order;
 
-  const newOrder = computeOrder(before, after)
-
-  store.moveTask(movedTaskId, newOrder, newColumnId)
+  const newOrder = computeOrder(before, after);
+  store.moveTask(movedTaskId, newOrder, newColumnId);
 }
 </script>
 
