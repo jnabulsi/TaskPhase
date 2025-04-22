@@ -142,7 +142,7 @@ const sortedColumns = computed(() =>
 function onColumnDragEnd(evt) {
   const { oldIndex, newIndex } = evt
   if (oldIndex === newIndex) return
-  const ordered = [...store.columns].sort((a, b) => a.order - b.order)
+  const ordered = store.getActiveColumns().sort((a, b) => a.order - b.order)
 
   const [moved] = ordered.splice(oldIndex, 1)
   ordered.splice(newIndex, 0, moved)
