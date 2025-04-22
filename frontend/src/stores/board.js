@@ -191,14 +191,34 @@ export const useBoardStore = defineStore('board', {
         this.saveToStorage()
       }
     },
-    deleteTag(id) {
-      // Remove the tag from the tags array
-      this.tags = this.tags.filter(tag => tag.id !== id);
+    deleteTag(tagId) {
+      // Remove the tag itself
+      this.tags = this.tags.filter(tag => tag.id !== tagId)
 
-      // Remove the tag from all tasks
-      for (const task of this.tasks) {
-        task.tags = task.tags.filter(tid => tid !== id);
-      }
+      // Remove tag from all tasks
+      this.tasks.forEach(task => {
+        task.tags = task.tags.filter(tid => tid !== tagId)
+      })
+
+      this.saveToStorage()
+    },
+    updateBoard(boardId, updatedFields) {
+      const board = this.boards.find(b => b.id === boardId)
+      if (!board) return
+
+      Object.assign(board, updatedFields)
+      this.saveToStorage()
+    },
+    deleteBoard(boardId) {
+      // Delete all columns belonging to this board
+      const columnIds = this.columns
+        .filter(c => c.boardId === boardId)
+        .map(c => c.id)
+
+      columnIds.forEach(this.deleteColumn)
+
+      // Delete the board
+      this.boards = this.boards.filter(b => b.id !== boardId)
       this.saveToStorage()
     },
   }

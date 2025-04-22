@@ -14,8 +14,21 @@
         <v-row dense>
           <v-col v-for="board in filteredBoards" :key="board.id" cols="12" sm="6" md="4" lg="3">
             <v-card class="pa-4" hover ripple @click="goToBoard(board.id)">
-              <v-card-title class="text-subtitle-1 font-weight-medium">
+              <v-card-title class="text-subtitle-1 font-weight-medium d-flex align-center">
                 {{ board.name }}
+                <!-- Dropdown Menu Button -->
+                <v-menu>
+                  <template #activator="{ props }">
+                    <v-btn class="ml-auto" v-bind="props" icon aria-label="Board options" title="Board options">
+                      <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item @click="openBoardEditModal(board)">
+                      <v-list-item-title>Edit Board</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
               </v-card-title>
               <!-- Color Strip Preview -->
               <v-card-text class="d-flex px-0 py-2 preview-strip">
@@ -26,6 +39,14 @@
         </v-row>
       </v-col>
     </v-row>
+    <!-- Board Edit Modal -->
+    <GenericModal title="Edit Board" :isOpen="showBoardEditModal" :initialValues="{ title: newBoardTitle }"
+      :showDelete="true" @submit="handleUpdateBoard" @delete="handleDeleteBoard(selectedBoardId)"
+      @close="showBoardEditModal = false">
+      <template #inputs="{ inputValues }">
+        <v-text-field v-model="inputValues.title" label="Board Title" />
+      </template>
+    </GenericModal>
   </v-container>
 </template>
 
@@ -56,6 +77,27 @@ const filteredBoards = computed(() => {
 function goToBoard(boardId) {
   boardStore.activeBoardId = boardId
   router.push(`/board/${boardId}`)
+}
+
+const selectedBoardId = ref(null);
+const showBoardEditModal = ref(false);
+const newBoardTitle = ref('');
+
+
+function openBoardEditModal(board) {
+  selectedBoardId.value = board.id
+  newBoardTitle.value = board.name
+  showBoardEditModal.value = true
+}
+function handleUpdateBoard(inputValues) {
+  boardStore.updateBoard(selectedBoardId.value, {
+    name: inputValues.title.trim(),
+  })
+  showBoardEditModal.value = false
+}
+
+function handleDeleteBoard(boardId) {
+  boardStore.deleteBoard(boardId)
 }
 
 </script>
