@@ -51,12 +51,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useBoardStore } from '@/stores/board'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const boardStore = useBoardStore()
+
+onMounted(() => {
+  defaultBordInit()
+})
 
 const search = ref('')
 
@@ -76,14 +80,22 @@ const filteredBoards = computed(() => {
 
 function defaultBordInit() {
   if (boardStore.boards.length === 0) {
-    store.createBoard("Default Board");
 
-    store.createColumn("To Do", "#42A5F5");
-    store.createColumn("In Progress", "#FFB300");
-    store.createColumn("Done", "#66BB6A");
+    const defaultBoard = boardStore.createBoard("Default Board");
 
-    //get col id from the created cols
-    store.createTask(columnId, title, description = '', tags = [],);
+    boardStore.setActiveBoard(defaultBoard.id);
+
+    const todoCol = boardStore.createColumn("To Do", "#42A5F5");
+    const inProgressCol = boardStore.createColumn("In Progress", "#FFB300");
+    const doneCol = boardStore.createColumn("Done", "#66BB6A");
+
+    const bugTag = boardStore.createTag("Bug", "#e53935")
+
+    boardStore.createTask(todoCol.id, "Welcome to TaskPhase!", "This is your first task.");
+    boardStore.createTask(inProgressCol.id, "You can drag tasks and columns around", "Drag me!");
+    boardStore.createTask(inProgressCol.id, "Click on a tag to open it", "From here you can edit and delete tasks");
+    boardStore.createTask(doneCol.id, "Create tasks, columns and tags", "Everything can be edited or deleted");
+    boardStore.createTask(doneCol.id, "Try filter by a tag", "add some tags in the sidebar", [bugTag.id]);
   }
 }
 
@@ -127,6 +139,6 @@ function handleDeleteBoard(boardId) {
 }
 
 .preview-strip>div:last-child {
-  margin-right: 0;
+  margin-right:0;
 }
 </style>

@@ -86,7 +86,28 @@ export const useBoardStore = defineStore('board', {
       this.saveToStorage()
     },
     createBoard(name) {
-      this.boards.push({ id: crypto.randomUUID(), name });
+      const board = { id: crypto.randomUUID(), name };
+      this.boards.push(board);
+      this.saveToStorage();
+      return board;
+    },
+    updateBoard(boardId, updatedFields) {
+      const board = this.boards.find(b => b.id === boardId)
+      if (!board) return
+
+      Object.assign(board, updatedFields)
+      this.saveToStorage()
+    },
+    deleteBoard(boardId) {
+      // Delete all columns belonging to this board
+      const columnIds = this.columns
+        .filter(c => c.boardId === boardId)
+        .map(c => c.id)
+
+      columnIds.forEach(this.deleteColumn)
+
+      // Delete the board
+      this.boards = this.boards.filter(b => b.id !== boardId)
       this.saveToStorage()
     },
 
@@ -98,15 +119,18 @@ export const useBoardStore = defineStore('board', {
         .filter(col => col.boardId === boardId)
         .reduce((max, col) => Math.max(max, col.order), 0) + 100;
 
-      this.columns.push({
+      const column = {
         id: crypto.randomUUID(),
         boardId,
         title,
         color,
         order,
-      });
+      };
 
-      this.saveToStorage()
+      this.columns.push(column);
+      this.saveToStorage();
+
+      return column;
     },
     updateColumn(id, updates) {
       const index = this.columns.findIndex(c => c.id === id);
@@ -183,6 +207,7 @@ export const useBoardStore = defineStore('board', {
       };
       this.tags.push(newTag);
       this.saveToStorage()
+      return newTag;
     },
     updateTag(id, updates) {
       const tag = this.tags.find(tag => tag.id === id);
@@ -200,27 +225,6 @@ export const useBoardStore = defineStore('board', {
         task.tags = task.tags.filter(tid => tid !== tagId)
       })
 
-      this.saveToStorage()
-    },
-
-    // Board Actions
-    updateBoard(boardId, updatedFields) {
-      const board = this.boards.find(b => b.id === boardId)
-      if (!board) return
-
-      Object.assign(board, updatedFields)
-      this.saveToStorage()
-    },
-    deleteBoard(boardId) {
-      // Delete all columns belonging to this board
-      const columnIds = this.columns
-        .filter(c => c.boardId === boardId)
-        .map(c => c.id)
-
-      columnIds.forEach(this.deleteColumn)
-
-      // Delete the board
-      this.boards = this.boards.filter(b => b.id !== boardId)
       this.saveToStorage()
     },
   }
