@@ -202,6 +202,8 @@ export const useBoardStore = defineStore('board', {
 
       this.saveToStorage()
     },
+
+    // Board Actions
     updateBoard(boardId, updatedFields) {
       const board = this.boards.find(b => b.id === boardId)
       if (!board) return

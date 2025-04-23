@@ -76,8 +76,4 @@ function handleDeleteTask() {
   store.deleteTask(props.task.id);
   showEditTaskModal.value = false;
 }
-
-const taskTags = computed(() => {
-  return props.task.tags.map(tagId => store.tags[tagId]).filter(Boolean);
-});
 </script>
