@@ -68,6 +68,6 @@ defineEmits(['update:drawer', 'open-add-column', 'open-add-tag', 'edit-tag']);
 
 const router = useRouter();
 function goToDashboard() {
-  router.push('/');
+  router.push('/dashboard');
 }
 </script>
