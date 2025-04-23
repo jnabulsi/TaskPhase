@@ -34,6 +34,7 @@
       </v-col>
     </v-row>
   </v-container>
+  <AppFooter />
 </template>
 
 <script setup>

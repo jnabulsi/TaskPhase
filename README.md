@@ -1,38 +1,16 @@
-# 🛠️ TaskForge
+# TaskPhase 🗂️
 
-**TaskForge** is a lightweight, modern task and project management tool designed for individuals and small teams who want to stay organized without the complexity of traditional enterprise platforms.
+**TaskPhase** is a lightweight, modern task and project management tool designed for individuals or small dev teams. Built to be fast, intuitive, and easy to self-host or extend.
 
-Whether you're a student juggling assignments, a solo developer managing side projects, or part of a small team that needs a clean and effective workflow — TaskForge helps you track your work in a structured yet flexible way.
+## ✨ Features
 
----
+- ✅ Drag-and-drop task management
+- 🧩 Tags for categorizing tasks
+- 📋 Multiple boards with custom columns
+- 🎨 Clean, responsive UI with Vuetify
+- 🔒 LocalStorage persistence (demo-ready, no backend yet)
 
-## ✨ Key Features
+## 🚀 Tech Stack
 
-- Organize your work using **projects**, **boards**, **columns**, and **tasks**
-- Simple **drag-and-drop** interface to move tasks between columns
-- **Customizable workflows** with support for common presets like Scrum or Kanban
-- **Collaboration tools** with role-based access and permissions
-- Clean, distraction-free design with a focus on usability
-- Built for **mobile and desktop** from the start
-
----
-
-## 🎯 Project Purpose
-
-TaskForge was created to fill a personal need for a project management tool that’s:
-
-- Easy to use
-- Not overloaded with features
-- Designed with solo devs and small teams in mind
-
-It also serves as a showcase of my technical and design skills, with plans to continually evolve and improve the project over time.
-
----
-
-## 🚧 Project Status
-
-This project is currently in active development. Features and visuals are subject to change as it evolves toward a stable release.
-
-Stay tuned!
-
----
+- **Frontend**: Vue 3, Vuetify, Pinia, Vue Router
+- **Drag & Drop**: [vuedraggable](https://github.com/SortableJS/vue.draggable.next)
