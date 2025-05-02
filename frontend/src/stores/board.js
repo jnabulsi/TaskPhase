@@ -46,8 +46,6 @@ export const useBoardStore = defineStore('board', {
   },
   actions: {
     loadFromStorage() {
-      console.log("start load");
-
       // Only load from localStorage if localMode is true
       const saved = localStorage.getItem('taskforge-data');
 
@@ -80,6 +78,17 @@ export const useBoardStore = defineStore('board', {
         localMode: this.localMode,  // Make sure localMode is saved
       }));
     },
+    clearStorage() {
+      localStorage.removeItem('taskforge-data');
+
+      this.localMode = false;
+      this.boards = [];
+      this.columns = [];
+      this.tasks = [];
+      this.tags = [];
+      this.activeBoardId = null;
+    },
+
     // Board actions
     setActiveBoard(id) {
       this.activeBoardId = id;

@@ -8,6 +8,7 @@ describe('Board Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     store = useBoardStore();
+    store.clearStorage();
     store.activeBoardId = defaultBoard.id;
     store.boards = [defaultBoard];
     store.columns = [...defaultBoard.columns];
@@ -15,6 +16,85 @@ describe('Board Store', () => {
     store.tags = [...defaultBoard.tags];
   });
 
+  describe('Data Actions', () => {
+    describe('loadFromStorage', () => {
+      it('loads data from localStorage when localMode is true', () => {
+        const mockData = {
+          localMode: true,
+          boards: [{ id: 99, name: 'Test Board' }],
+          columns: [],
+          tasks: [],
+          tags: [],
+          activeBoardId: 99
+        };
+        localStorage.setItem('taskforge-data', JSON.stringify(mockData));
+
+        store.loadFromStorage();
+
+        expect(store.localMode).toBe(true);
+        expect(store.boards).toEqual(mockData.boards);
+        expect(store.activeBoardId).toBe(99);
+      });
+      it('does not load anything if localStorage is empty', () => {
+        localStorage.removeItem('taskforge-data');
+
+        store.loadFromStorage();
+
+        // Default untouched state
+        expect(store.localMode).toBe(false);
+        expect(store.boards.length).toBeGreaterThan(0); // from defaultBoard
+      });
+      it('does not load data if localMode is false in storage', () => {
+        const mockData = {
+          localMode: false,
+          boards: [{ id: 42, name: 'Should Not Load' }]
+        };
+        localStorage.setItem('taskforge-data', JSON.stringify(mockData));
+
+        store.loadFromStorage();
+
+        expect(store.boards.some(b => b.id === 42)).toBe(false);
+      });
+    });
+
+    describe('saveToStorage', () => {
+      it('does not save if localMode is false', () => {
+        store.localMode = false;
+        store.saveToStorage();
+
+        expect(localStorage.getItem('taskforge-data')).toBeNull();
+      });
+      it('saves store data to localStorage when localMode is true', () => {
+        store.localMode = true;
+        store.saveToStorage();
+
+        const saved = JSON.parse(localStorage.getItem('taskforge-data'));
+
+        expect(saved.localMode).toBe(true);
+        expect(saved.boards).toEqual(store.boards);
+        expect(saved.columns).toEqual(store.columns);
+        expect(saved.tasks).toEqual(store.tasks);
+        expect(saved.tags).toEqual(store.tags);
+      });
+    });
+    describe('clearStorage', () => {
+      it('removes data from localStorage', () => {
+        store.clearStorage();
+
+        expect(localStorage.getItem('taskforge-data')).toBeNull();
+      });
+      it('resets store values to default', () => {
+        store.clearStorage();
+
+        expect(store.localMode).toBe(false);
+        expect(store.boards).toEqual([]);
+        expect(store.columns).toEqual([]);
+        expect(store.tasks).toEqual([]);
+        expect(store.tags).toEqual([]);
+        expect(store.activeBoardId).toBeNull();
+      });
+    });
+  });
   describe('Task Actions', () => {
     describe('createTask', () => {
       it('creates a task with title only', () => {

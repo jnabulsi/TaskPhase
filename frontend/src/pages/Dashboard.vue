@@ -22,7 +22,7 @@
         <v-divider></v-divider>
 
         <!-- Settings -->
-        <v-list-item class="d-flex align-center justify-center" @click="goToSettings">
+        <v-list-item class="d-flex align-center justify-center" @click="openSettings">
           <v-icon class="ml-2" size="40">mdi-cog</v-icon>
           <span class="">Settings</span>
         </v-list-item>
@@ -42,6 +42,8 @@
       </template>
     </GenericModal>
 
+    <Settings v-if="showSettingsModal" @close="showSettingsModal = false" />
+
   </v-layout>
 </template>
 
@@ -52,21 +54,16 @@ import { useBoardStore } from '@/stores/board'
 const store = useBoardStore();
 store.loadFromStorage()
 
-const localMode = store.localMode
-console.log({ localMode })
-
-const boards = store.boards
-
-console.log({ boards })
-
 const showAddBoardModal = ref(false);
 function handleAddBoard(inputValues) {
   store.createBoard(inputValues.title.trim());
   showAddBoardModal.value = false;
 }
 
-function goToSettings() {
-  // navigate to settings
+const showSettingsModal = ref(false)
+
+function openSettings() {
+  showSettingsModal.value = true
 }
 
 function goToProfile() {
