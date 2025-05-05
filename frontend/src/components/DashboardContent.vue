@@ -27,6 +27,9 @@
                     <v-list-item @click="openBoardEditModal(board)">
                       <v-list-item-title>Edit Board</v-list-item-title>
                     </v-list-item>
+                    <v-list-item @click="ExportBoard(board)">
+                      <v-list-item-title>Download Board as JSON</v-list-item-title>
+                    </v-list-item>
                   </v-list>
                 </v-menu>
               </v-card-title>
@@ -54,6 +57,7 @@
 import { onMounted, ref, computed } from 'vue'
 import { useBoardStore } from '@/stores/board'
 import { useRouter } from 'vue-router'
+import { getExportData, downloadJson } from '@/utils/utils';
 
 const router = useRouter()
 const boardStore = useBoardStore()
@@ -126,6 +130,12 @@ function handleDeleteBoard(boardId) {
   boardStore.deleteBoard(boardId)
 }
 
+function ExportBoard(board) {
+  const boardId = board.id;
+  const data = getExportData(boardId)
+  downloadJson(data, board.name)
+}
+
 </script>
 
 <style scoped>
@@ -139,6 +149,6 @@ function handleDeleteBoard(boardId) {
 }
 
 .preview-strip>div:last-child {
-  margin-right:0;
+  margin-right: 0;
 }
 </style>
