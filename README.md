@@ -2,6 +2,8 @@
 
 **TaskPhase** is a lightweight, modern task and project management tool designed for individuals or small dev teams. Built to be fast, intuitive, and easy to extend.
 
+Check out the live version at [taskphase.xyz](https://taskphase.xyz).
+
 ## ✨ Features
 
 - ✅ Drag-and-drop task management
@@ -9,7 +11,7 @@
 - 📋 Multiple boards with custom columns
 - 🎨 Clean, responsive UI with Vuetify
 - 🔒 LocalStorage persistence
-- 📥 Import/Export Boards: Easily import and export boards with all their tasks, columns, and tags in JSON format.
+- 📥 Import/Export Boards in JSON format.
 
 ## 🚀 Tech Stack
 
