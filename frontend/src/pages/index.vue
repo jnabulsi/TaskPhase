@@ -1,40 +1,25 @@
 <template>
-  <v-container fluid>
-    <v-row justify="center" class="mt-8 pt-16 pa-8 fill-height">
-      <v-col cols="12" md="6" class="text-center">
-        <h1 class="text-h4 font-weight-bold mb-2">TaskPhase</h1>
-        <p class="text-subtitle-1 mb-6">
-          Lightweight boards for devs & teams
-        </p>
-        <v-btn class="ma-2 mr-6" color="primary" @click="goLocal">
-          Try it
-        </v-btn>
-        <v-btn class="ma-2 ml-6" color="secondary" @click="goLogin">
-          Log in
-        </v-btn>
+  <v-container fluid class="pa-0 fill-height">
+    <v-row no-gutters class="fill-height d-flex flex-row">
+      <!-- Left Side: Text/CTA -->
+      <v-col cols="12" md="6" class="d-flex flex-column justify-center px-6 px-md-12 pl-md-16 text-container">
+        <div>
+          <h1 class="font-weight-bold mb-4 gradient-text">TaskPhase</h1>
+          <p class="text-h5 mb-6">
+            Lightweight task boards for devs. Fast, local-first, and private.
+          </p>
+          <v-btn color="primary" size="large" @click="goLocal" rounded>
+            Try it now
+          </v-btn>
+        </div>
+      </v-col>
 
-        <v-divider class="my-6" />
-
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-icon size="32" class="mb-2">mdi-flash</v-icon>
-            <h2 class="text-h6 font-weight-bold mb-1">Try it instantly</h2>
-            <p class="text-body-2">
-              No account needed. Your boards are saved in your browser.
-            </p>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-icon size="32" class="mb-2">mdi-lock</v-icon>
-            <h2 class="text-h6 font-weight-bold mb-1">Log in for full features</h2>
-            <p class="text-body-2">
-              Save to the cloud, collaborate with others, and sync across devices.
-            </p>
-          </v-col>
-        </v-row>
+      <!-- Right Side: Visual -->
+      <v-col cols="12" md="6" class="d-flex justify-center align-center right-pane">
+        <img src="@/assets/demo.png" alt="App Preview" class="screenshot" />
       </v-col>
     </v-row>
   </v-container>
-  <AppFooter />
 </template>
 
 <script setup>
@@ -47,19 +32,11 @@ store.loadFromStorage()
 const router = useRouter()
 
 function goLocal() {
-  // Handle local mode navigation
   store.localMode = true
-  store.saveToStorage();
-  console.log('Entering local mode...');
-
+  store.saveToStorage()
   nextTick(() => {
-    router.push('/dashboard');
-  });
-}
-
-function goLogin() {
-  // Handle login navigation
-  console.log('Navigating to login...');
+    router.push('/dashboard')
+  })
 }
 </script>
 
@@ -68,7 +45,38 @@ function goLogin() {
   min-height: 100vh;
 }
 
-.text-center {
-  text-align: center;
+.left-pane {
+  background-color: #0f0f0f;
+  color: white;
+}
+
+.right-pane {
+  background-color: #A5D6A7
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #42A5F5, #FFB300, #66BB6A);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 6.5rem;
+}
+
+@media (min-width: 960px) and (max-width: 1250px) {
+  .gradient-text {
+    font-size: 5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .gradient-text {
+    font-size: 4.5rem;
+  }
+}
+
+
+.screenshot {
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 </style>
