@@ -7,41 +7,24 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
-      <v-card-text>
-        <v-row no-gutters>
-          <!-- Sidebar -->
-          <v-col cols="3" style="border-right: 1px solid #ccc;">
-            <v-list nav dense>
-              <v-list-item v-for="(item, i) in menuItems" :key="i" :value="item.value" @click="selected = item.value"
-                :active="selected === item.value">
-                <v-list-item-title class="pa-4 text-h6">{{ item.label }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
+      <v-card-text class="pl-8 ml-16">
+        <v-row>
+          <!-- Import Data Section -->
+          <v-col cols="12">
+            <p class="mt-4 text-h6">Import Data</p>
+            <p class="mb-2">Import data using a JSON file.</p>
+            <p class="mb-2">Export JSON from the board options.</p>
+
+            <input class="ma-4" type="file" accept=".json" @change="handleFileChange">
+
+            <v-btn color="primary" @click="importJson">Import JSON</v-btn>
           </v-col>
 
-          <!-- Main content -->
-          <v-col cols="9" class="pa-4">
-            <div v-if="selected === 'storage'">
-              <!-- Import Data Section -->
-              <v-col cols="12">
-                <p class="mt-4 text-h6">Import Data</p>
-                <p class="mb-2">Import data using a JSON file.</p>
-                <p class="mb-2">Export JSON from the board options.</p>
-
-                <input type="file" accept=".json" @change="handleFileChange">
-
-                <v-btn color="primary" @click="importJson">Import JSON</v-btn>
-              </v-col>
-
-              <!-- Clear Data Section --> <v-col cols="12">
-                <v-divider></v-divider>
-                <p class="mt-4 red--text text-h6">Clear Data</p>
-                <p class="mb-2 red--text">This will permanently delete all data and cannot be undone!</p>
-                <v-btn color="red" @click="confirmClearData">Clear Data</v-btn>
-              </v-col>
-            </div>
-            <div v-else-if="selected === 'keybindings'">
-            </div>
+          <!-- Clear Data Section --> <v-col cols="12">
+            <v-divider></v-divider>
+            <p class="mt-4 red--text text-h6">Clear Data</p>
+            <p class="mb-2 red--text">This will permanently delete all data and cannot be undone!</p>
+            <v-btn color="red" @click="confirmClearData">Clear Data</v-btn>
           </v-col>
         </v-row>
       </v-card-text>
@@ -80,12 +63,6 @@ function clearData() {
   showConfirmClearDataModal.value = false;
 }
 
-const selected = ref('storage');
-
-const menuItems = [
-  { label: 'Storage', value: 'storage' },
-  { label: 'Keybindings', value: 'keybindings' },
-];
 const selectedFile = ref(null);
 
 function handleFileChange(event) {
